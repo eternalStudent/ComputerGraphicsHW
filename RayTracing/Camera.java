@@ -8,10 +8,10 @@ public class Camera {
 	final float screenWidth;
 
 	Camera(
-		int px, int py, int pz,
-		int lx, int ly, int lz,
-		int ux, int uy, int uz,
-		int screenDistance, int screenWidth) {
+		float px, float py, float pz,
+		float lx, float ly, float lz,
+		float ux, float uy, float uz,
+		float screenDistance, float screenWidth) {
 
 		this.position = new Vector(px, py, pz);
 		this.lookAt = new Vector(lx, ly, lz);

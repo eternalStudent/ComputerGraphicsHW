@@ -1,11 +1,11 @@
 package RayTracing;
 
 public class Vector {
-	final int x;
-	final int y;
-	final int z;
+	final float x;
+	final float y;
+	final float z;
 
-	Vector(int x, int y, int z) {
+	Vector(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -19,11 +19,11 @@ public class Vector {
 		return v1.add(v2);
 	}
 
-	int dot(Vector other) {
+	float dot(Vector other) {
 		return (x*other.x + y*other.y + z*other.z);
 	}
 
-	static int dot(Vector v1, Vector v2) {
+	static float dot(Vector v1, Vector v2) {
 		return v1.dot(v2);
 	}
 
@@ -38,7 +38,7 @@ public class Vector {
 		return v1.cross(v2);
 	}
 
-	int normSquared() {
+	double normSquared() {
 		return x*x + y*y + z*z;
 	}
 
@@ -58,7 +58,7 @@ public class Vector {
 	public boolean equals(Object o) {
 		if (!(o instanceof Vector))
 			return false;
-		
+
 		Vector other = (Vector) o;
 		return ( (x == other.x) && (y == other.y) && (z == other.z) );
 	}

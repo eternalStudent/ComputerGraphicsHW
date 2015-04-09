@@ -18,6 +18,7 @@ public class RayTracer {
 	public int imageWidth;
 	public int imageHeight;
 
+	public Scene scene;
 	/**
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
 	 */
@@ -73,11 +74,9 @@ public class RayTracer {
 		int lineNum = 0;
 		System.out.println("Started parsing scene file " + sceneFileName);
 
-		ArrayList<Material> materials = new ArrayList<>();
-		ArrayList<Sphere> spheres = new ArrayList<>();
-		ArrayList<Light> lights = new ArrayList<>();
-		Camera camera;
-		SceneSettings settings;
+		scene.materials = new ArrayList<>();
+		scene.spheres = new ArrayList<>();
+		scene.lights = new ArrayList<>();
 
 		while ((line = r.readLine()) != null)
 		{
@@ -95,24 +94,24 @@ public class RayTracer {
 				String[] params = line.substring(3).trim().toLowerCase().split("\\s+");
 				if (code.equals("cam"))
 				{
-                    camera = new Camera(
-                    	Integer.parseInt(params[0]),
-						Integer.parseInt(params[1]),
-						Integer.parseInt(params[2]),
-						Integer.parseInt(params[3]),
-						Integer.parseInt(params[4]),
-						Integer.parseInt(params[5]),
-						Integer.parseInt(params[6]),
-						Integer.parseInt(params[7]),
-						Integer.parseInt(params[8]),
-						Integer.parseInt(params[9]),
-						Integer.parseInt(params[10]));
+                    scene.camera = new Camera(
+                    	Float.parseFloat(params[0]),
+						Float.parseFloat(params[1]),
+						Float.parseFloat(params[2]),
+						Float.parseFloat(params[3]),
+						Float.parseFloat(params[4]),
+						Float.parseFloat(params[5]),
+						Float.parseFloat(params[6]),
+						Float.parseFloat(params[7]),
+						Float.parseFloat(params[8]),
+						Float.parseFloat(params[9]),
+						Float.parseFloat(params[10]));
 
 					System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
 				}
 				else if (code.equals("set"))
 				{
-                    settings = new SceneSettings(
+                    scene.settings = new SceneSettings(
                     	Byte.parseByte(params[0]),
 						Byte.parseByte(params[1]),
 						Byte.parseByte(params[2]),
@@ -124,7 +123,7 @@ public class RayTracer {
 				}
 				else if (code.equals("mtl"))
 				{
-					materials.add(new Material(
+					scene.materials.add(new Material(
 						Byte.parseByte(params[0]),
 						Byte.parseByte(params[1]),
 						Byte.parseByte(params[2]),
@@ -142,12 +141,12 @@ public class RayTracer {
 				}
 				else if (code.equals("sph"))
 				{
-	                spheres.add(new Sphere(
-	                	Integer.parseInt(params[0]),
-	                	Integer.parseInt(params[1]),
-		                Integer.parseInt(params[2]),
-		                Integer.parseInt(params[3]),
-		                materials.get(Integer.parseInt(params[4]) - 1))
+	                scene.spheres.add(new Sphere(
+	                	Float.parseFloat(params[0]),
+	                	Float.parseFloat(params[1]),
+		                Float.parseFloat(params[2]),
+		                Float.parseFloat(params[3]),
+		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 
 					System.out.println(String.format("Parsed sphere (line %d)", lineNum));
@@ -166,7 +165,7 @@ public class RayTracer {
 				}
 				else if (code.equals("lgt"))
 				{
-                    lights.add(new Light(
+                    scene.lights.add(new Light(
                     	Integer.parseInt(params[0]),
 	                	Integer.parseInt(params[1]),
 		                Integer.parseInt(params[2]),
@@ -204,6 +203,8 @@ public class RayTracer {
 
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
+
+
 
 
                 // Put your ray tracing code here!
