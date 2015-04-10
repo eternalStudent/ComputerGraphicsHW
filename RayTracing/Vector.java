@@ -1,6 +1,7 @@
 package RayTracing;
 
 public class Vector {
+	static final Vector ZERO = new Vector(0, 0, 0);
 	final double x;
 	final double y;
 	final double z;
@@ -10,7 +11,11 @@ public class Vector {
 		this.y = y;
 		this.z = z;
 	}
-	
+
+	double distSquared(Vector other) {
+		return (x - other.x)*(x - other.x) + (y - other.y)*(y - other.y) + (z - other.z)*(z - other.z);
+	}
+
 	Vector reverse(){
 		return new Vector(-x, -y, -z);
 	}
@@ -21,6 +26,28 @@ public class Vector {
 
 	static Vector add(Vector v1, Vector v2) {
 		return v1.add(v2);
+	}
+
+	static Vector sum(Vector... vectors) {
+		double x = 0.0;
+		double y = 0.0;
+		double z = 0.0;
+
+		for (Vector vect : vectors) {
+			x += vect.x;
+			y += vect.y;
+			z += vect.z;
+		}
+
+		return new Vector(x, y, z);
+	}
+
+	Vector subtract(Vector other) {
+		return new Vector(x - other.x, y - other.y, z - other.z);
+	}
+
+	static Vector subtract(Vector v1, Vector v2) {
+		return v1.subtract(v2);
 	}
 
 	double dot(Vector other) {
@@ -54,11 +81,15 @@ public class Vector {
 		return new Vector(a*x, a*y, a*z);
 	}
 
+	Vector toLength(double length) {
+		return scale(length / norm());
+	}
+
 	boolean isNormalized() {
 		return normSquared() == 1;
 	}
-	
-	Vector normalized(){
+
+	Vector normalize(){
 		return scale(1/norm());
 	}
 
@@ -73,6 +104,14 @@ public class Vector {
 	@Override
 	public String toString() {
 		return "(" + x + ", " + y + ", " + z + ")";
+	}
+
+	Vector projectOntoPlane(Plane plane) {
+		return subtract(projectOntoVector(plane.normal));
+	}
+
+	Vector projectOntoVector(Vector other) {
+		return toLength(dot(other));
 	}
 
 }

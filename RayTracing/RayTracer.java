@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+
 import javax.imageio.ImageIO;
 
 /**
@@ -74,6 +76,8 @@ public class RayTracer {
 		int lineNum = 0;
 		System.out.println("Started parsing scene file " + sceneFileName);
 
+		scene = new Scene();
+
 		scene.materials = new ArrayList<>();
 		scene.spheres = new ArrayList<>();
 		scene.lights = new ArrayList<>();
@@ -104,17 +108,18 @@ public class RayTracer {
 						Float.parseFloat(params[6]),
 						Float.parseFloat(params[7]),
 						Float.parseFloat(params[8]),
-						Float.parseFloat(params[9]),
-						Float.parseFloat(params[10]));
+						Double.parseDouble(params[9]),
+						Double.parseDouble(params[10]),
+						imageWidth, imageHeight);
 
 					System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
 				}
 				else if (code.equals("set"))
 				{
                     scene.settings = new SceneSettings(
-                    	Byte.parseByte(params[0]),
-						Byte.parseByte(params[1]),
-						Byte.parseByte(params[2]),
+                    	(byte) Math.round(255 * Double.parseDouble(params[0])),
+						(byte) Math.round(255 * Double.parseDouble(params[1])),
+						(byte) Math.round(255 * Double.parseDouble(params[2])),
 						Integer.parseInt(params[3]),
 						Integer.parseInt(params[4])
 					);
@@ -124,15 +129,15 @@ public class RayTracer {
 				else if (code.equals("mtl"))
 				{
 					scene.materials.add(new Material(
-						Byte.parseByte(params[0]),
-						Byte.parseByte(params[1]),
-						Byte.parseByte(params[2]),
-						Byte.parseByte(params[3]),
-						Byte.parseByte(params[4]),
-						Byte.parseByte(params[5]),
-						Byte.parseByte(params[6]),
-						Byte.parseByte(params[7]),
-						Byte.parseByte(params[8]),
+						(byte) Math.round(255 * Double.parseDouble(params[0])),
+						(byte) Math.round(255 * Double.parseDouble(params[1])),
+						(byte) Math.round(255 * Double.parseDouble(params[2])),
+						(byte) Math.round(255 * Double.parseDouble(params[3])),
+						(byte) Math.round(255 * Double.parseDouble(params[4])),
+						(byte) Math.round(255 * Double.parseDouble(params[5])),
+						(byte) Math.round(255 * Double.parseDouble(params[6])),
+						(byte) Math.round(255 * Double.parseDouble(params[7])),
+						(byte) Math.round(255 * Double.parseDouble(params[8])),
 						Float.parseFloat(params[9]),
 						Float.parseFloat(params[10]))
 					);
@@ -166,15 +171,15 @@ public class RayTracer {
 				else if (code.equals("lgt"))
 				{
                     scene.lights.add(new Light(
-                    	Integer.parseInt(params[0]),
-	                	Integer.parseInt(params[1]),
-		                Integer.parseInt(params[2]),
-                    	Byte.parseByte(params[3]),
-						Byte.parseByte(params[4]),
-						Byte.parseByte(params[5]),
-						Integer.parseInt(params[6]),
-						Integer.parseInt(params[7]),
-						Integer.parseInt(params[8]))
+                    	Double.parseDouble(params[0]),
+	                	Double.parseDouble(params[1]),
+		                Double.parseDouble(params[2]),
+                    	(byte) Math.round(255 * Double.parseDouble(params[0])),
+						(byte) Math.round(255 * Double.parseDouble(params[1])),
+						(byte) Math.round(255 * Double.parseDouble(params[2])),
+						Double.parseDouble(params[6]),
+						Double.parseDouble(params[7]),
+						Double.parseDouble(params[8]))
                     );
 
 					System.out.println(String.format("Parsed light (line %d)", lineNum));
@@ -184,8 +189,8 @@ public class RayTracer {
 					System.out.println(String.format("ERROR: Did not recognize object: %s (line %d)", code, lineNum));
 				}
 			}
-			r.close();
 		}
+		r.close();
 
                 // It is recommended that you check here that the scene is valid,
                 // for example camera settings and all necessary materials were defined.
@@ -204,10 +209,29 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
+		Ray ray;
+		Vector closest;
+		
+		for (int i = 0; i < imageWidth; i++) {
+			for (int j = 0; j < imageHeight; j++) {
+				ray = scene.camera.getRayByPixelCoordinate(i, j);
+				closest = getClosestIntersectionWithRay(ray);
+//				System.out.println(closest);
+				
+				if (closest == null) {
+					// Deal with no intersection
+					rgbData[(j * this.imageWidth + i) * 3] = 0;
+					rgbData[(j * this.imageWidth + i) * 3 + 1] = 0;
+					rgbData[(j * this.imageWidth + i) * 3 + 2] = 0;
+				} else {
+					rgbData[(j * this.imageWidth + i) * 3] = 100;
+					rgbData[(j * this.imageWidth + i) * 3 + 1] = 100;
+					rgbData[(j * this.imageWidth + i) * 3 + 2] = 100;
+				}
 
-
-
-                // Put your ray tracing code here!
+			}
+		}
+				// Put your ray tracing code here!
                 //
                 // Write pixel color values in RGB format to rgbData:
                 // Pixel [x, y] red component is in rgbData[(y * this.imageWidth + x) * 3]
@@ -231,6 +255,40 @@ public class RayTracer {
 
 	}
 
+	Vector getClosestIntersectionWithRay(Ray ray) {
+		Vector rayOrigin = ray.p0;
+		Vector min = new Vector(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+
+		double minDist = Double.MAX_VALUE;
+		double closestDist;
+		
+		boolean intersects = false;
+		
+		Vector closestIntersectionWithShape;
+
+		// TODO: scene.spheres will change to scene.shapes
+		for (Shape3D shape : scene.spheres) {
+			closestIntersectionWithShape = shape.getClosestIntersectionWithRay(ray);
+			
+			if (closestIntersectionWithShape != null && !ray.contains(closestIntersectionWithShape)) {
+				System.out.println("derp");
+			}
+			
+			if (closestIntersectionWithShape != null) {
+				closestDist = closestIntersectionWithShape.distSquared(rayOrigin);
+
+				if (closestDist < minDist) {
+					intersects = true;
+					min = closestIntersectionWithShape;
+					minDist = closestDist;
+				}
+			}
+		}
+		if (!intersects) {
+			return null;
+		}
+		return min;
+	}
 
 
 

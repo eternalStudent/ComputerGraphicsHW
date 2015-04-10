@@ -1,14 +1,62 @@
 package RayTracing;
 
-public class Sphere {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Sphere extends Shape3D {
 	final Vector center;
 	final float radius;
-	final Material material;
 
 	Sphere(float x, float y, float z, float radius, Material material) {
+		super(material);
+
 		center = new Vector(x, y, z);
 		this.radius = radius;
-		this.material = material;
+	}
+
+	@Override
+	List<Vector> getIntersections(Ray ray) {
+		ArrayList<Vector> intersections = new ArrayList<>();
+
+		if ( ray.dir.dot( center.subtract(ray.p0) ) < 0) {
+			return intersections;
+		}
+		if (ray.p0.distSquared(center) <= radius*radius) {
+			intersections.add( ray.getVectAlongRay(radius) );
+
+			return intersections;
+		}
+
+		if ( center.equals(Vector.ZERO) ) {
+			Vector vect = ray.dir.toLength(ray.p0.norm());
+			if (vect.add(ray.p0).norm() > radius) {
+				return intersections;
+			} else {
+				System.out.println("We'll see");
+				return intersections;
+			}
+		}
+
+		Vector centerProjOntoRay = center.projectOntoVector(ray.dir);
+
+		double distSqCenterToRay = centerProjOntoRay.distSquared(center);
+
+		if (distSqCenterToRay > radius*radius) {
+			return intersections;
+		}
+
+		double dist = Math.sqrt(radius*radius - distSqCenterToRay);
+
+		intersections.add( ray.dir.toLength(centerProjOntoRay.norm() - dist) );
+		intersections.add( ray.dir.toLength(centerProjOntoRay.norm() + dist) );
+
+		return intersections;
+	}
+
+	Vector getClosestIntersectionWithRay(Ray ray) {
+		List<Vector> intersections = getIntersections(ray);
+
+		return !intersections.isEmpty() ? intersections.get(0) : null;
 	}
 }
 
