@@ -211,22 +211,29 @@ public class RayTracer {
 
 		Ray ray;
 		Vector closest;
-		
+		Material material = new Material((byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (float)0, (float)0);
+
+		byte[] backgroundRGB = scene.settings.background.rgb;
+
 		for (int i = 0; i < imageWidth; i++) {
 			for (int j = 0; j < imageHeight; j++) {
 				ray = scene.camera.getRayByPixelCoordinate(i, j);
-				closest = getClosestIntersectionWithRay(ray);
-//				System.out.println(closest);
-				
+				closest = getClosestIntersectionWithRay(ray, material);
+
 				if (closest == null) {
-					// Deal with no intersection
-					rgbData[(j * this.imageWidth + i) * 3] = 0;
-					rgbData[(j * this.imageWidth + i) * 3 + 1] = 0;
-					rgbData[(j * this.imageWidth + i) * 3 + 2] = 0;
+					paintPixel(rgbData, i, j, backgroundRGB);
 				} else {
-					rgbData[(j * this.imageWidth + i) * 3] = 100;
-					rgbData[(j * this.imageWidth + i) * 3 + 1] = 100;
-					rgbData[(j * this.imageWidth + i) * 3 + 2] = 100;
+					RGB lightSum = new RGB((byte) 0, (byte)0, (byte)0);
+					double d;
+
+					for (Light light : scene.lights) {
+						d = light.position.distSquared(closest);
+
+						lightSum.add( material.diffuse.multiply( light.rgb.scale(1/d) ) );
+						lightSum.add( material.specular.multiply( light.rgb.scale(1/d) ) );
+					}
+
+					paintPixel(rgbData, i, j, lightSum.rgb);
 				}
 
 			}
@@ -255,30 +262,39 @@ public class RayTracer {
 
 	}
 
-	Vector getClosestIntersectionWithRay(Ray ray) {
+	void paintPixel(byte[] rgbData, int x, int y, byte[] rgb) {
+		rgbData[(y * this.imageWidth + x) * 3] = rgb[0];
+		rgbData[(y * this.imageWidth + x) * 3 + 1] = rgb[1];
+		rgbData[(y * this.imageWidth + x) * 3 + 2] = rgb[2];
+	}
+
+	Vector getClosestIntersectionWithRay(Ray ray, Material material) {
 		Vector rayOrigin = ray.p0;
 		Vector min = new Vector(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
 		double minDist = Double.MAX_VALUE;
 		double closestDist;
-		
+
 		boolean intersects = false;
-		
+
 		Vector closestIntersectionWithShape;
 
 		// TODO: scene.spheres will change to scene.shapes
 		for (Shape3D shape : scene.spheres) {
-			closestIntersectionWithShape = shape.getClosestIntersectionWithRay(ray);
-			
+			closestIntersectionWithShape = shape.getClosestIntersection(ray);
+
 			if (closestIntersectionWithShape != null && !ray.contains(closestIntersectionWithShape)) {
 				System.out.println("derp");
 			}
-			
+
 			if (closestIntersectionWithShape != null) {
 				closestDist = closestIntersectionWithShape.distSquared(rayOrigin);
 
 				if (closestDist < minDist) {
 					intersects = true;
+					material.diffuse = shape.material.diffuse;
+					material.specular = shape.material.specular;
+					material.reflection = shape.material.reflection;
 					min = closestIntersectionWithShape;
 					minDist = closestDist;
 				}

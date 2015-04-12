@@ -53,25 +53,25 @@ public class Sphere extends Shape3D {
 		return intersections;
 	}
 
-	Vector getClosestIntersectionWithRay(Ray ray) {
+	Vector getClosestIntersection(Ray ray) {
 		//List<Vector> intersections = getIntersections(ray);
 
 		//return !intersections.isEmpty() ? intersections.get(0) : null;
 		return intersect(ray);
 	}
-	
+
 	public Vector intersect(Ray ray) {
 	    double a = ray.dir.normSquared();
 	    double b = ray.p0.subtract(center).dot(ray.dir);
 	    double c = center.distSquared(ray.p0) - radius*radius;
 
 	    double discriminant = b*b-a*c;
-	    if (discriminant < 0.0) 
+	    if (discriminant < 0.0)
 	    	return null;
 
 	    discriminant = Math.sqrt(discriminant);
-	    double length = (-b-discriminant)/a;
-	    return ray.getVectAlongRay(length);
+	    double t = (-b-discriminant)/a;
+	    return ray.getVectAlongRay(t);
 	  }
 }
 

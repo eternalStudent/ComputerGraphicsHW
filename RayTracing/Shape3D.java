@@ -10,5 +10,5 @@ public abstract class Shape3D {
 	}
 
 	abstract List<Vector> getIntersections(Ray ray);
-	abstract Vector getClosestIntersectionWithRay(Ray ray);
+	abstract Vector getClosestIntersection(Ray ray);
 }
