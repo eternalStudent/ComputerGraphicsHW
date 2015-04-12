@@ -1,4 +1,4 @@
-package raytracing;
+package RayTracing;
 
 public class Test {
 	final static String HERP_DERP = "You're an idiot.";
@@ -30,12 +30,7 @@ public class Test {
 		}
 	}
 
-	static voice testCamera() {
-		Camera camera = new Camera(
-			0,  0,  0,
-			lx,  ly,  lz,
-			ux,  uy,  uz,
-			screenDistance,  screenWidth,
-			500,  500));
+	static void testCamera() {
+	
 	}
 }
