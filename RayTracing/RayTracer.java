@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -78,10 +79,6 @@ public class RayTracer {
 
 		scene = new Scene();
 
-		scene.materials = new ArrayList<>();
-		scene.spheres = new ArrayList<>();
-		scene.lights = new ArrayList<>();
-
 		while ((line = r.readLine()) != null)
 		{
 			line = line.trim();
@@ -117,9 +114,9 @@ public class RayTracer {
 				else if (code.equals("set"))
 				{
                     scene.settings = new SceneSettings(
-                    	(byte) Math.round(255 * Double.parseDouble(params[0])),
-						(byte) Math.round(255 * Double.parseDouble(params[1])),
-						(byte) Math.round(255 * Double.parseDouble(params[2])),
+                    	Double.parseDouble(params[0]),
+						Double.parseDouble(params[1]),
+						Double.parseDouble(params[2]),
 						Integer.parseInt(params[3]),
 						Integer.parseInt(params[4])
 					);
@@ -129,15 +126,15 @@ public class RayTracer {
 				else if (code.equals("mtl"))
 				{
 					scene.materials.add(new Material(
-						(byte) Math.round(255 * Double.parseDouble(params[0])),
-						(byte) Math.round(255 * Double.parseDouble(params[1])),
-						(byte) Math.round(255 * Double.parseDouble(params[2])),
-						(byte) Math.round(255 * Double.parseDouble(params[3])),
-						(byte) Math.round(255 * Double.parseDouble(params[4])),
-						(byte) Math.round(255 * Double.parseDouble(params[5])),
-						(byte) Math.round(255 * Double.parseDouble(params[6])),
-						(byte) Math.round(255 * Double.parseDouble(params[7])),
-						(byte) Math.round(255 * Double.parseDouble(params[8])),
+						Double.parseDouble(params[0]),
+						Double.parseDouble(params[1]),
+						Double.parseDouble(params[2]),
+						Double.parseDouble(params[3]),
+						Double.parseDouble(params[4]),
+						Double.parseDouble(params[5]),
+						Double.parseDouble(params[6]),
+						Double.parseDouble(params[7]),
+						Double.parseDouble(params[8]),
 						Float.parseFloat(params[9]),
 						Float.parseFloat(params[10]))
 					);
@@ -146,7 +143,7 @@ public class RayTracer {
 				}
 				else if (code.equals("sph"))
 				{
-	                scene.spheres.add(new Sphere(
+	                scene.shapes.add(new Sphere(
 	                	Float.parseFloat(params[0]),
 	                	Float.parseFloat(params[1]),
 		                Float.parseFloat(params[2]),
@@ -158,7 +155,13 @@ public class RayTracer {
 				}
 				else if (code.equals("pln"))
 				{
-                                        // Add code here to parse plane parameters
+                    scene.shapes.add(new Plane(
+	                	Double.parseDouble(params[0]),
+	                	Double.parseDouble(params[1]),
+		                Double.parseDouble(params[2]),
+		                Double.parseDouble(params[3]),
+		                scene.materials.get(Integer.parseInt(params[4]) - 1))
+	                );
 
 					System.out.println(String.format("Parsed plane (line %d)", lineNum));
 				}
@@ -174,9 +177,9 @@ public class RayTracer {
                     	Double.parseDouble(params[0]),
 	                	Double.parseDouble(params[1]),
 		                Double.parseDouble(params[2]),
-                    	(byte) Math.round(255 * Double.parseDouble(params[0])),
-						(byte) Math.round(255 * Double.parseDouble(params[1])),
-						(byte) Math.round(255 * Double.parseDouble(params[2])),
+                    	Double.parseDouble(params[3]),
+						Double.parseDouble(params[4]),
+						Double.parseDouble(params[5]),
 						Double.parseDouble(params[6]),
 						Double.parseDouble(params[7]),
 						Double.parseDouble(params[8]))
@@ -209,33 +212,12 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
-		Ray ray;
-		Vector closest;
-		Material material = new Material((byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (float)0, (float)0);
-
-		byte[] backgroundRGB = scene.settings.background.rgb;
+		RGB pixelColor;
 
 		for (int i = 0; i < imageWidth; i++) {
 			for (int j = 0; j < imageHeight; j++) {
-				ray = scene.camera.getRayByPixelCoordinate(i, j);
-				closest = getClosestIntersectionWithRay(ray, material);
-
-				if (closest == null) {
-					paintPixel(rgbData, i, j, backgroundRGB);
-				} else {
-					RGB lightSum = new RGB((byte) 0, (byte)0, (byte)0);
-					double d;
-
-					for (Light light : scene.lights) {
-						d = light.position.distSquared(closest);
-
-						lightSum.add( material.diffuse.multiply( light.rgb.scale(1/d) ) );
-						lightSum.add( material.specular.multiply( light.rgb.scale(1/d) ) );
-					}
-
-					paintPixel(rgbData, i, j, lightSum.rgb);
-				}
-
+				pixelColor = findPixelColor(i ,j);
+				paintPixel(rgbData, i, j, pixelColor);
 			}
 		}
 				// Put your ray tracing code here!
@@ -262,51 +244,85 @@ public class RayTracer {
 
 	}
 
-	void paintPixel(byte[] rgbData, int x, int y, byte[] rgb) {
-		rgbData[(y * this.imageWidth + x) * 3] = rgb[0];
-		rgbData[(y * this.imageWidth + x) * 3 + 1] = rgb[1];
-		rgbData[(y * this.imageWidth + x) * 3 + 2] = rgb[2];
+	RGB findPixelColor(int x, int y) {
+		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
+		Hit closestHit = getClosestHit(ray);
+		RGB color = RGB.BLACK;
+
+		double epsilon = 0.5;
+
+		if (closestHit == null) {
+			return scene.settings.background;
+		}
+
+		for (Light light : scene.lights) {
+			Ray hitToLight = Ray.createRayByTwoVects(
+				closestHit.intersection,
+				light.position);
+
+			if (isOccluded(hitToLight.moveOriginAlongRay(epsilon), light)) {
+				continue;
+			}
+
+			double dotProduct = closestHit.normal.normalize().dot(light.position.normalize());
+
+			if (dotProduct < 0) {
+				continue;
+			}
+
+			RGB diffuse = closestHit.getDiffuse().multiply(light.rgb).scale(dotProduct);
+			
+			Vector reflection = getReflection(closestHit, light);
+	
+			double cosOfAngle = scene.camera.position.normalize().dot(reflection.normalize());
+			
+			RGB specular = cosOfAngle > 0 && !closestHit.getSpecular().rgb.equals(Vector.ZERO) ? 
+					closestHit.getSpecular().scale(Math.pow(cosOfAngle, closestHit.getPhong())) :
+					RGB.BLACK;
+			
+			color = RGB.sum(color, diffuse, specular);
+		}
+
+		return color;
 	}
 
-	Vector getClosestIntersectionWithRay(Ray ray, Material material) {
-		Vector rayOrigin = ray.p0;
-		Vector min = new Vector(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-
+	Hit getClosestHit(Ray ray) {
+		Hit closestHit = null;
 		double minDist = Double.MAX_VALUE;
-		double closestDist;
 
-		boolean intersects = false;
+		for (Shape3D shape : scene.shapes) {
+			Hit hit = shape.getHit(ray);
 
-		Vector closestIntersectionWithShape;
-
-		// TODO: scene.spheres will change to scene.shapes
-		for (Shape3D shape : scene.spheres) {
-			closestIntersectionWithShape = shape.getClosestIntersection(ray);
-
-			if (closestIntersectionWithShape != null && !ray.contains(closestIntersectionWithShape)) {
-				System.out.println("derp");
-			}
-
-			if (closestIntersectionWithShape != null) {
-				closestDist = closestIntersectionWithShape.distSquared(rayOrigin);
-
-				if (closestDist < minDist) {
-					intersects = true;
-					material.diffuse = shape.material.diffuse;
-					material.specular = shape.material.specular;
-					material.reflection = shape.material.reflection;
-					min = closestIntersectionWithShape;
-					minDist = closestDist;
-				}
+			if (hit != null && hit.dist < minDist) {
+				closestHit = hit;
+				minDist = hit.dist;
 			}
 		}
-		if (!intersects) {
-			return null;
-		}
-		return min;
+
+		return closestHit;
 	}
 
+	boolean isOccluded(Ray hitToLight, Light light) {
+		Hit closestHit = getClosestHit(hitToLight);
 
+		if (closestHit == null) {
+			return false;
+		}
+		return (closestHit.dist*closestHit.dist) < closestHit.intersection.distSquared(light.position);
+	}
+	
+	Vector getReflection(Hit hit, Light light) {
+		return light.position.subtract(
+				hit.normal.toLength(
+						2*light.position.dot(hit.normal.normalize()))); 
+		
+	}
+
+	void paintPixel(byte[] rgbData, int x, int y, RGB pixelColor) {
+		rgbData[(y * this.imageWidth + x) * 3] = pixelColor.getRByte();
+		rgbData[(y * this.imageWidth + x) * 3 + 1] = pixelColor.getGByte();
+		rgbData[(y * this.imageWidth + x) * 3 + 2] = pixelColor.getBByte();
+	}
 
 	//////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
 

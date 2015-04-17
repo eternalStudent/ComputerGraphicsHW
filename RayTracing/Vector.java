@@ -62,7 +62,8 @@ public class Vector {
 		return new Vector(
 			y*other.z - z*other.y,
 			z*other.x - x*other.z,
-			x*other.y - y*other.x);
+			x*other.y - y*other.x
+			);
 	}
 
 	static Vector cross(Vector v1, Vector v2) {
@@ -112,6 +113,10 @@ public class Vector {
 
 	Vector projectOntoVector(Vector other) {
 		return toLength(dot(other));
+	}
+
+	Vector pointwiseMultiply(Vector other) {
+		return new Vector(x*other.x, y*other.y, z*other.z);
 	}
 
 }

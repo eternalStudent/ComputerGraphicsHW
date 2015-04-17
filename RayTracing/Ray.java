@@ -43,4 +43,8 @@ public class Ray {
 	public static Ray createRayByTwoVects(Vector v1, Vector v2) {
 		return new Ray(v1, v2.subtract(v1));
 	}
+
+	Ray moveOriginAlongRay(double epsilon) {
+		return new Ray(getVectAlongRay(epsilon), dir);
+	}
 }

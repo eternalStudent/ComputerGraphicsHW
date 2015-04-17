@@ -6,10 +6,10 @@ public class SceneSettings {
 	final int maxRecursionLevel;
 
 	SceneSettings(
-		byte bgr, byte bgg, byte bgb,
+		double d, double e, double f,
 		int shadowRaysNum, int maxRecursionLevel) {
 
-		background = new RGB(bgr, bgg, bgb);
+		background = new RGB(d, e, f);
 		this.shadowRaysNum = shadowRaysNum;
 		this.maxRecursionLevel = maxRecursionLevel;
 	}

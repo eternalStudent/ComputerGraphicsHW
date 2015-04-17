@@ -38,11 +38,11 @@ public class Camera {
 		// This is the plane that the direction vector is perpendicular to.
 		Plane directionPlane = new Plane(position.normalize(), position.dot(directionVect), null);
 
-		Vector up = new Vector(ux, uy, uz);
+		Vector up = new Vector(ux, -uy, uz);
 		this.up = up.projectOntoPlane(directionPlane);
 
-		xAxis = directionVect.cross(up).toLength(screenWidth / 2);
-		yAxis = up.toLength(screenHeight / 2);
+		xAxis = directionVect.cross(this.up).toLength(screenWidth / 2);
+		yAxis = this.up.toLength(screenHeight / 2);
 	}
 
 	public Ray getRayByPixelCoordinate(int x, int y) {

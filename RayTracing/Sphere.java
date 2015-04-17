@@ -57,10 +57,11 @@ public class Sphere extends Shape3D {
 		//List<Vector> intersections = getIntersections(ray);
 
 		//return !intersections.isEmpty() ? intersections.get(0) : null;
-		return intersect(ray);
+		// return intersect(ray);
+		return null;
 	}
 
-	public Vector intersect(Ray ray) {
+	public Hit getHit(Ray ray) {
 	    double a = ray.dir.normSquared();
 	    double b = ray.p0.subtract(center).dot(ray.dir);
 	    double c = center.distSquared(ray.p0) - radius*radius;
@@ -70,8 +71,25 @@ public class Sphere extends Shape3D {
 	    	return null;
 
 	    discriminant = Math.sqrt(discriminant);
-	    double t = (-b-discriminant)/a;
-	    return ray.getVectAlongRay(t);
-	  }
+	    double t1 = (-b-discriminant)/a;
+	    double t2 = (-b+discriminant)/a;
+	    double t;
+
+	    if (t1 < 0 && t2 > 0) {
+	    	t = t2;
+	    }
+	   	else if (t1 < 0 && t2 < 0) {
+	   		return null;
+	   	}
+	   	else {
+	   		t = t1;
+	   	}
+
+	    return new Hit(this, t, ray);
+  	}
+
+	Vector getNormalAtSurfacePoint(Vector point) {
+		return point.subtract(center);
+	}
 }
 

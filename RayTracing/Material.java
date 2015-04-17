@@ -1,16 +1,16 @@
 package RayTracing;
 
 public class Material {
-	RGB diffuse;
-	RGB specular;
-	RGB reflection;
+	final RGB diffuse;
+	final RGB specular;
+	final RGB reflection;
 	final float phong;
 	final float trans;
 
 	Material(
-		byte dr, byte dg, byte db,
-		byte sr, byte sg, byte sb,
-		byte rr, byte rg, byte rb,
+		double dr, double dg, double db,
+		double sr, double sg, double sb,
+		double rr, double rg, double rb,
 		float phong,
 		float trans) {
 

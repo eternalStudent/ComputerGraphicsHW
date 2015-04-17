@@ -1,6 +1,5 @@
 package RayTracing;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Plane extends Shape3D{
@@ -22,24 +21,34 @@ public class Plane extends Shape3D{
 	}
 
 	@Override
-	List<Vector> getIntersections(Ray ray) {
-		List<Vector> intersections = new ArrayList<>();
+	Hit getHit(Ray ray) {
+		double dirDotNorm = ray.dir.dot(normal);
 
-		double dirDotNorm = Math.abs(ray.dir.dot(normal));
-
-		if (dirDotNorm < 0.005) {
-			return intersections;
+		if (Math.abs(dirDotNorm) < 0.005) {
+			return null;
 		}
 
-		double t = -(ray.p0.dot(normal) + offset) / dirDotNorm;
+		double t = (offset - normal.dot(ray.p0)) / dirDotNorm;
+		if (t < 0) {
+			return null;
+		}
 
-		intersections.add(ray.getVectAlongRay(t));
-
-		return intersections;
+		return new Hit(this, t, ray);
 	}
 
 	@Override
 	Vector getClosestIntersection(Ray ray) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	Vector getNormalAtSurfacePoint(Vector point) {
+		return normal;
+	}
+
+	@Override
+	List<Vector> getIntersections(Ray ray) {
 		// TODO Auto-generated method stub
 		return null;
 	}

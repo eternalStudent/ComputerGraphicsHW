@@ -1,31 +1,55 @@
 package RayTracing;
-
 public class RGB {
-	final byte[] rgb;
+	final Vector rgb;
+	public static final RGB BLACK = new RGB(0, 0, 0);
 
-	RGB(byte r, byte g, byte b) {
-		byte[] temp = {r, g, b};
-		rgb = temp;
+	RGB(double r, double g, double b) {
+		rgb = new Vector(Math.min(1, r), Math.min(1, g), Math.min(1, b));
 	}
 
 	RGB add(RGB other) {
-		return new RGB(
-			(byte) (rgb[0] + other.rgb[0]),
-			(byte) (rgb[1] + other.rgb[0]),
-			(byte) (rgb[2] + other.rgb[0]));
+		Vector tmp = rgb.add(other.rgb);
+
+		return new RGB(tmp.x, tmp.y, tmp.z);
+	}
+
+	double getR() {
+		return rgb.x;
+	}
+	byte getRByte() {
+		return (byte) Math.round(255*rgb.x);
+	}
+	double getG() {
+		return rgb.y;
+	}
+	byte getGByte() {
+		return (byte) Math.round(255*rgb.y);
+	}
+	double getB() {
+		return rgb.z;
+	}
+	byte getBByte() {
+		return (byte) Math.round(255*rgb.z);
 	}
 
 	RGB multiply(RGB other) {
-		return new RGB(
-			(byte) (rgb[0]*other.rgb[0]),
-			(byte) (rgb[1]*other.rgb[1]),
-			(byte) (rgb[2]*other.rgb[2]));
+		Vector product = rgb.pointwiseMultiply(other.rgb);
+
+		return new RGB(product.x, product.y, product.z);
 	}
 
-	RGB scale(double s) {
-		return new RGB (
-			(byte) Math.round(rgb[0]*s),
-			(byte) Math.round(rgb[1]*s),
-			(byte) Math.round(rgb[2]*s));
+	static RGB sum(RGB... colors) {
+		RGB result = RGB.BLACK;
+
+		for (RGB color : colors) {
+			result = result.add(color);
+		}
+
+		return result;
 	}
+
+	RGB scale(double a) {
+		return new RGB(a*getR(), a*getG(), a*getB());
+	}
+
 }

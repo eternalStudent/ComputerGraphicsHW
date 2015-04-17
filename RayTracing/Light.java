@@ -9,7 +9,7 @@ public class Light {
 
 	Light(
 		double px, double py, double pz,
-		byte r, byte g, byte b,
+		double r, double g, double b,
 		double spec, double shadow, double width) {
 
 		this.position = new Vector(px, py, pz);
