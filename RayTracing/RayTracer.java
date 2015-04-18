@@ -212,6 +212,9 @@ public class RayTracer {
 		RGB pixelColor;
 
 		for (int i = 0; i < imageWidth; i++) {
+
+			System.out.println(i);
+
 			for (int j = 0; j < imageHeight; j++) {
 				pixelColor = getPixelColor(i ,j);
 				paintPixel(rgbData, i, j, pixelColor);
@@ -242,17 +245,15 @@ public class RayTracer {
 	}
 
 	RGB getPixelColor(int x, int y) {
-
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
-		color = traceRay(ray);
 
-		return color;
+		return traceRay(ray, 0);
 	}
 
-	RGB traceRay(Ray ray) {
+	RGB traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray);
 
-		if (closestHit == null) {
+		if (closestHit == null || iteration == scene.settings.maxRecursionLevel - 5) {
 			return scene.settings.background;
 		}
 
@@ -260,17 +261,27 @@ public class RayTracer {
 
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoVects(
-				closestHit.intersection,
-				light.position);
+				light.position,
+				closestHit.intersection);
 
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			Ray reflectionRay = Ray.createRayByTwoVects(closestHit.intersection, reflection);
 
+			RGB reflectRGB = closestHit.getReflectRGB().equals(RGB.BLACK) ?
+					RGB.BLACK :
+					closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
+
+			RGB lightRGB = light.rgb;
+
+			if ( isOccluded(shadowRay, closestHit) ) {
+				lightRGB = lightRGB.scale(light.shadow);
+			}
+
 			color = RGB.sum(
 				color,
-				getDiffuse(closestHit, shadowRay, light),
-				getSpecular(closestHit, shadowRay, reflection),
-				traceRay(reflectionRay));
+				getDiffuse(closestHit, shadowRay, lightRGB),
+				getSpecular(closestHit, reflection, light, lightRGB),
+				reflectRGB);
 		}
 
 		return color;
@@ -292,34 +303,28 @@ public class RayTracer {
 		return closestHit;
 	}
 
-	boolean isOccluded(Ray hitToLight, Light light) {
-		Hit closestHit = getClosestHit(hitToLight);
+	boolean isOccluded(Ray shadowRay, Hit hit) {
+		Hit closestHit = getClosestHit(shadowRay);
 
 		if (closestHit == null) {
 			return false;
 		}
-		return (closestHit.dist*closestHit.dist) < closestHit.intersection.distSquared(light.position);
+		return (closestHit.shape != hit.shape);
 	}
 
-	RGB getDiffuse(Hit hit, Ray shadowRay, Light light) {
-		RGB lightRGB = light.rgb;
-		double epsilon = 0.8;
-
-		if ( isOccluded(shadowRay.moveOriginAlongRay(epsilon), light) ) {
-			lightRGB = lightRGB.scale(light.shadow);
-		}
-		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir);
+	RGB getDiffuse(Hit hit, Ray shadowRay, RGB lightRGB) {
+		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 
 		return cosOfAngle > 0 ?
 			hit.getDiffuse().multiply(lightRGB).scale(cosOfAngle) :
 			RGB.BLACK;
 	}
 
-	RGB getSpecular(Hit hit, Ray shadowRay, Vector reflection){
+	RGB getSpecular(Hit hit, Vector reflection, Light light, RGB lightRGB){
 		double cosOfAngle = scene.camera.position.getCosOfAngle(reflection);
 
 		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ?
-				hit.getSpecular().scale(Math.pow(cosOfAngle, hit.getPhong())) :
+				hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong())) :
 				RGB.BLACK;
 	}
 

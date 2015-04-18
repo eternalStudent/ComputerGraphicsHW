@@ -27,4 +27,8 @@ public class Hit {
 	float getPhong() {
 		return shape.material.phong;
 	}
+
+	RGB getReflectRGB() {
+		return shape.material.reflection;
+	}
 }
