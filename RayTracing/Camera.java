@@ -2,9 +2,7 @@ package RayTracing;
 
 public class Camera {
 	final Vector position;
-	private final Vector lookAt;
-	private final Vector up;
-
+	
 	private final Vector directionVect;
 	private final double screenHeight;
 
@@ -22,7 +20,7 @@ public class Camera {
 		int imageWidth, int imageHeight) {
 
 		this.position = new Vector(px, py, pz);
-		this.lookAt = new Vector(lx, ly, lz);
+		Vector lookAt = new Vector(lx, ly, lz);
 
 		screenHeight = screenWidth*(imageHeight / imageWidth);
 
@@ -32,13 +30,13 @@ public class Camera {
 		directionVect = lookAt.subtract(position).toLength(screenDistance);
 
 		// This is the plane that the direction vector is perpendicular to.
-		Plane directionPlane = new Plane(position.normalize(), position.dot(directionVect), null);
+		Plane directionPlane = position.getPerpendicularPlaneAtPoint(directionVect);
 
 		Vector up = new Vector(ux, -uy, uz);
-		this.up = up.projectOntoPlane(directionPlane);
+		up = up.projectOntoPlane(directionPlane);
 
-		xAxis = directionVect.cross(this.up).toLength(screenWidth / 2);
-		yAxis = this.up.toLength(screenHeight / 2);
+		xAxis = directionVect.cross(up).toLength(screenWidth / 2);
+		yAxis = up.toLength(screenHeight / 2);
 	}
 
 	public Ray getRayByPixelCoordinate(int x, int y) {

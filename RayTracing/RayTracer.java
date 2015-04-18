@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -210,16 +212,23 @@ public class RayTracer {
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
 		RGB pixelColor;
-
+		
+		int progress = 0;
+		System.out.print("rendering");
 		for (int i = 0; i < imageWidth; i++) {
-
-			System.out.println(i);
+			
+			int temp = (i*60)/imageWidth;
+			if (temp>progress){
+				progress = temp;
+				System.out.print('.');
+			}
 
 			for (int j = 0; j < imageHeight; j++) {
 				pixelColor = getPixelColor(i ,j);
 				paintPixel(rgbData, i, j, pixelColor);
 			}
 		}
+		System.out.println();
 				// Put your ray tracing code here!
                 //
                 // Write pixel color values in RGB format to rgbData:
@@ -233,13 +242,13 @@ public class RayTracer {
 		long endTime = System.currentTimeMillis();
 		Long renderTime = endTime - startTime;
 
-                // The time is measured for your own conveniece, rendering speed will not affect your score
+                // The time is measured for your own convenience, rendering speed will not affect your score
                 // unless it is exceptionally slow (more than a couple of minutes)
 		System.out.println("Finished rendering scene in " + renderTime.toString() + " milliseconds.");
 
                 // This is already implemented, and should work without adding any code.
 		saveImage(this.imageWidth, rgbData, outputFileName);
-
+		
 		System.out.println("Saved file " + outputFileName);
 
 	}
@@ -253,7 +262,7 @@ public class RayTracer {
 	RGB traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray);
 
-		if (closestHit == null || iteration == scene.settings.maxRecursionLevel - 5) {
+		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
 		}
 
@@ -263,6 +272,7 @@ public class RayTracer {
 			Ray shadowRay = Ray.createRayByTwoVects(
 				light.position,
 				closestHit.intersection);
+			//not a single ray, but N*N rays from grid, see below function
 
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			Ray reflectionRay = Ray.createRayByTwoVects(closestHit.intersection, reflection);
@@ -326,6 +336,18 @@ public class RayTracer {
 		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ?
 				hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong())) :
 				RGB.BLACK;
+	}
+	
+	List<Vector> getLightGrid(Ray ray, Light light){
+		List<Vector> grid = new ArrayList<>();
+		Plane plane = ray.getPerpendicularPlaneAtOrigion();
+		int sahdowRayNums = scene.settings.shadowRaysNum;
+		//chose a random vector on 'plane' that goes through 'ray' origin;
+		//find a perpendicular vector to form a rectangle with width equals to light.width 
+		//	and center at ray origion;
+		//for i=0..shadowRayNum for j=0..shadowRayNums choose a Vector in the rectangle
+		//	in a corresponding place and add to list;
+		return grid;
 	}
 
 	void paintPixel(byte[] rgbData, int x, int y, RGB pixelColor) {

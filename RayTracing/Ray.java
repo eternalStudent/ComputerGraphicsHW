@@ -14,15 +14,6 @@ public class Ray {
 		this.p0 = p0;
 	}
 
-	public boolean contains(Vector p) {
-		double dx = p.x-p0.x;
-		if (dir.x ==0) {
-			System.out.println("derp dir.x ==0");
-		}
-		double scale = dx/dir.x;
-		return p0.add(dir.scale(scale)).equals(p);
-	}
-
 	public Vector getVectAlongRay(double dist) {
 		return p0.add(dir.toLength(dist));
 	}
@@ -46,5 +37,9 @@ public class Ray {
 
 	Ray moveOriginAlongRay(double epsilon) {
 		return new Ray(getVectAlongRay(epsilon), dir);
+	}
+	
+	Plane getPerpendicularPlaneAtOrigion(){
+		return dir.getPerpendicularPlaneAtPoint(p0);
 	}
 }

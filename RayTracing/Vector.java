@@ -127,5 +127,9 @@ public class Vector {
 	double getCosOfAngle(Vector other) {
 		return normalize().dot(other.normalize());
 	}
+	
+	Plane getPerpendicularPlaneAtPoint(Vector point){
+		return new Plane(this, dot(point), null);
+	}
 
 }
