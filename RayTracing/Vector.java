@@ -118,10 +118,14 @@ public class Vector {
 	Vector pointwiseMultiply(Vector other) {
 		return new Vector(x*other.x, y*other.y, z*other.z);
 	}
-	
+
 	Vector getReflectionAroundNormal(Vector normal) {
 		normal = normal.normalize();
-		return subtract(normal.scale(2*dot(normal))); 	
+		return subtract(normal.scale(2*dot(normal)));
+	}
+
+	double getCosOfAngle(Vector other) {
+		return normalize().dot(other.normalize());
 	}
 
 }

@@ -242,32 +242,35 @@ public class RayTracer {
 	}
 
 	RGB getPixelColor(int x, int y) {
+
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
+		color = traceRay(ray);
+
+		return color;
+	}
+
+	RGB traceRay(Ray ray) {
 		Hit closestHit = getClosestHit(ray);
-		RGB color = RGB.BLACK;
 
 		if (closestHit == null) {
 			return scene.settings.background;
 		}
 
+		RGB color = RGB.BLACK;
+
 		for (Light light : scene.lights) {
-			Ray hitToLight = Ray.createRayByTwoVects(
+			Ray shadowRay = Ray.createRayByTwoVects(
 				closestHit.intersection,
 				light.position);
-			
-			double epsilon = 0.5;
-			if (isOccluded(hitToLight.moveOriginAlongRay(epsilon), light)) {
-				continue;
-			}
 
-			double dotProduct = closestHit.normal.normalize().dot(light.position.normalize());
-			if (dotProduct < 0) {
-				continue;
-			}
+			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
+			Ray reflectionRay = Ray.createRayByTwoVects(closestHit.intersection, reflection);
 
-			RGB diffuse = closestHit.getDiffuse().multiply(light.rgb).scale(dotProduct);
-			RGB specular = getSpecular(closestHit, light);
-			color = RGB.sum(color, diffuse, specular);
+			color = RGB.sum(
+				color,
+				getDiffuse(closestHit, shadowRay, light),
+				getSpecular(closestHit, shadowRay, reflection),
+				traceRay(reflectionRay));
 		}
 
 		return color;
@@ -297,12 +300,25 @@ public class RayTracer {
 		}
 		return (closestHit.dist*closestHit.dist) < closestHit.intersection.distSquared(light.position);
 	}
-	
-	RGB getSpecular(Hit hit, Light light){
-		Vector reflection = light.position.getReflectionAroundNormal(hit.normal);	
-		double cosOfAngle = scene.camera.position.normalize().dot(reflection.normalize());
-		
-		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ? 
+
+	RGB getDiffuse(Hit hit, Ray shadowRay, Light light) {
+		RGB lightRGB = light.rgb;
+		double epsilon = 0.8;
+
+		if ( isOccluded(shadowRay.moveOriginAlongRay(epsilon), light) ) {
+			lightRGB = lightRGB.scale(light.shadow);
+		}
+		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir);
+
+		return cosOfAngle > 0 ?
+			hit.getDiffuse().multiply(lightRGB).scale(cosOfAngle) :
+			RGB.BLACK;
+	}
+
+	RGB getSpecular(Hit hit, Ray shadowRay, Vector reflection){
+		double cosOfAngle = scene.camera.position.getCosOfAngle(reflection);
+
+		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ?
 				hit.getSpecular().scale(Math.pow(cosOfAngle, hit.getPhong())) :
 				RGB.BLACK;
 	}
