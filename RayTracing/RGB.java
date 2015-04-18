@@ -51,5 +51,13 @@ public class RGB {
 	RGB scale(double a) {
 		return new RGB(a*getR(), a*getG(), a*getB());
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		if (!(o instanceof RGB))
+			return false;
+		RGB other = (RGB) o;
+		return rgb.equals(other.rgb);
+	}
 
 }

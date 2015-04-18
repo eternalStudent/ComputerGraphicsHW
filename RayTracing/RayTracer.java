@@ -7,9 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -216,7 +213,7 @@ public class RayTracer {
 
 		for (int i = 0; i < imageWidth; i++) {
 			for (int j = 0; j < imageHeight; j++) {
-				pixelColor = findPixelColor(i ,j);
+				pixelColor = getPixelColor(i ,j);
 				paintPixel(rgbData, i, j, pixelColor);
 			}
 		}
@@ -244,12 +241,10 @@ public class RayTracer {
 
 	}
 
-	RGB findPixelColor(int x, int y) {
+	RGB getPixelColor(int x, int y) {
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
 		Hit closestHit = getClosestHit(ray);
 		RGB color = RGB.BLACK;
-
-		double epsilon = 0.5;
 
 		if (closestHit == null) {
 			return scene.settings.background;
@@ -259,27 +254,19 @@ public class RayTracer {
 			Ray hitToLight = Ray.createRayByTwoVects(
 				closestHit.intersection,
 				light.position);
-
+			
+			double epsilon = 0.5;
 			if (isOccluded(hitToLight.moveOriginAlongRay(epsilon), light)) {
 				continue;
 			}
 
 			double dotProduct = closestHit.normal.normalize().dot(light.position.normalize());
-
 			if (dotProduct < 0) {
 				continue;
 			}
 
 			RGB diffuse = closestHit.getDiffuse().multiply(light.rgb).scale(dotProduct);
-			
-			Vector reflection = getReflection(closestHit, light);
-	
-			double cosOfAngle = scene.camera.position.normalize().dot(reflection.normalize());
-			
-			RGB specular = cosOfAngle > 0 && !closestHit.getSpecular().rgb.equals(Vector.ZERO) ? 
-					closestHit.getSpecular().scale(Math.pow(cosOfAngle, closestHit.getPhong())) :
-					RGB.BLACK;
-			
+			RGB specular = getSpecular(closestHit, light);
 			color = RGB.sum(color, diffuse, specular);
 		}
 
@@ -311,11 +298,13 @@ public class RayTracer {
 		return (closestHit.dist*closestHit.dist) < closestHit.intersection.distSquared(light.position);
 	}
 	
-	Vector getReflection(Hit hit, Light light) {
-		return light.position.subtract(
-				hit.normal.toLength(
-						2*light.position.dot(hit.normal.normalize()))); 
+	RGB getSpecular(Hit hit, Light light){
+		Vector reflection = light.position.getReflectionAroundNormal(hit.normal);	
+		double cosOfAngle = scene.camera.position.normalize().dot(reflection.normalize());
 		
+		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ? 
+				hit.getSpecular().scale(Math.pow(cosOfAngle, hit.getPhong())) :
+				RGB.BLACK;
 	}
 
 	void paintPixel(byte[] rgbData, int x, int y, RGB pixelColor) {
@@ -358,6 +347,7 @@ public class RayTracer {
 	    return result;
 	}
 
+	@SuppressWarnings("serial")
 	public static class RayTracerException extends Exception {
 		public RayTracerException(String msg) {  super(msg); }
 	}

@@ -6,8 +6,6 @@ public class Camera {
 	private final Vector up;
 
 	private final Vector directionVect;
-	private final double screenDistance;
-	private final double screenWidth;
 	private final double screenHeight;
 
 	private final int imageHeight;
@@ -25,8 +23,6 @@ public class Camera {
 
 		this.position = new Vector(px, py, pz);
 		this.lookAt = new Vector(lx, ly, lz);
-		this.screenDistance = screenDistance;
-		this.screenWidth = screenWidth;
 
 		screenHeight = screenWidth*(imageHeight / imageWidth);
 
