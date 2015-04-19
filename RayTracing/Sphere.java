@@ -22,7 +22,7 @@ public class Sphere extends Shape3D {
 			return intersections;
 		}
 		if (ray.p0.distSquared(center) <= radius*radius) {
-			intersections.add( ray.getVectAlongRay(radius) );
+			intersections.add( ray.getPointAlongRay(radius) );
 
 			return intersections;
 		}

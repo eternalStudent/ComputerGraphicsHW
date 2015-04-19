@@ -269,13 +269,13 @@ public class RayTracer {
 		RGB color = RGB.BLACK;
 
 		for (Light light : scene.lights) {
-			Ray shadowRay = Ray.createRayByTwoVects(
+			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
 			//not a single ray, but N*N rays from grid, see below function
 
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
-			Ray reflectionRay = Ray.createRayByTwoVects(closestHit.intersection, reflection);
+			Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
 
 			RGB reflectRGB = closestHit.getReflectRGB().equals(RGB.BLACK) ?
 					RGB.BLACK :

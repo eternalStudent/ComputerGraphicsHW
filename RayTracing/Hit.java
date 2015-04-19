@@ -10,7 +10,7 @@ public class Hit {
 		this.dist = dist;
 		this.shape = shape;
 
-		intersection = ray.getVectAlongRay(dist);
+		intersection = ray.getPointAlongRay(dist);
 		normal = shape.getNormalAtSurfacePoint(intersection);
 	}
 

@@ -14,7 +14,7 @@ public class Ray {
 		this.p0 = p0;
 	}
 
-	public Vector getVectAlongRay(double dist) {
+	public Vector getPointAlongRay(double dist) {
 		return p0.add(dir.toLength(dist));
 	}
 
@@ -31,12 +31,12 @@ public class Ray {
 		return "Ray origin: " + p0 + ", Ray direction: " + dir;
 	}
 
-	public static Ray createRayByTwoVects(Vector v1, Vector v2) {
+	public static Ray createRayByTwoPoints(Vector v1, Vector v2) {
 		return new Ray(v1, v2.subtract(v1));
 	}
 
 	Ray moveOriginAlongRay(double epsilon) {
-		return new Ray(getVectAlongRay(epsilon), dir);
+		return new Ray(getPointAlongRay(epsilon), dir);
 	}
 	
 	Plane getPerpendicularPlaneAtOrigion(){
