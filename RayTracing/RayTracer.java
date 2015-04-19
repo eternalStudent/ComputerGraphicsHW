@@ -278,13 +278,14 @@ public class RayTracer {
 			RGB reflectRGB = closestHit.getReflectRGB().equals(RGB.BLACK) ?
 					RGB.BLACK :
 					closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
-
-			RGB lightRGB = light.rgb.scale(getOcclusionLevel(shadowRay, light, closestHit)*light.shadow);
+			
+			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
+			RGB lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
 
 			color = RGB.sum(
 				color,
-				getDiffuse(closestHit, shadowRay, lightRGB),
-				getSpecular(closestHit, reflection, light, lightRGB),
+				getDiffuse(closestHit, shadowRay, lightIntensity),
+				getSpecular(closestHit, reflection, light, lightIntensity),
 				reflectRGB);
 		}
 
@@ -316,7 +317,7 @@ public class RayTracer {
 		return (closestHit.shape != hit.shape);
 	}
 	
-	double getOcclusionLevel(Ray shadowRay, Light light, Hit hit){
+	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		int sum=0;
 		for (int i=0; i<grid.length; i++){
