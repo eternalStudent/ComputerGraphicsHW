@@ -7,8 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -272,8 +271,7 @@ public class RayTracer {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
-			//not a single ray, but N*N rays from grid, see below function
-
+			
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
 
@@ -281,11 +279,7 @@ public class RayTracer {
 					RGB.BLACK :
 					closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
 
-			RGB lightRGB = light.rgb;
-
-			if ( isOccluded(shadowRay, closestHit) ) {
-				lightRGB = lightRGB.scale(light.shadow);
-			}
+			RGB lightRGB = light.rgb.scale(getOcclusionLevel(shadowRay, light, closestHit)*light.shadow);
 
 			color = RGB.sum(
 				color,
@@ -321,6 +315,19 @@ public class RayTracer {
 		}
 		return (closestHit.shape != hit.shape);
 	}
+	
+	double getOcclusionLevel(Ray shadowRay, Light light, Hit hit){
+		Vector[] grid = getLightGrid(shadowRay, light);
+		int sum=0;
+		for (int i=0; i<grid.length; i++){
+			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
+			if (!isOccluded(ray, hit)){
+				sum++;
+				
+			}		
+		}	
+		return (double)sum/(double)grid.length; 
+	}
 
 	RGB getDiffuse(Hit hit, Ray shadowRay, RGB lightRGB) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
@@ -338,15 +345,25 @@ public class RayTracer {
 				RGB.BLACK;
 	}
 	
-	List<Vector> getLightGrid(Ray ray, Light light){
-		List<Vector> grid = new ArrayList<>();
+	Vector[] getLightGrid(Ray ray, Light light){
+		//construct rectangle
 		Plane plane = ray.getPerpendicularPlaneAtOrigion();
-		int sahdowRayNums = scene.settings.shadowRaysNum;
-		//chose a random vector on 'plane' that goes through 'ray' origin;
-		//find a perpendicular vector to form a rectangle with width equals to light.width 
-		//	and center at ray origion;
-		//for i=0..shadowRayNum for j=0..shadowRayNums choose a Vector in the rectangle
-		//	in a corresponding place and add to list;
+		Vector edge1 = plane.getArbitraryDirection();
+		Vector edge2 = edge1.cross(plane.normal);
+		Vector vertex = Vector.sum(ray.p0, edge1.toLength(-light.width/2), edge2.toLength(-light.width/2));
+		
+		int shadowRaysNum = scene.settings.shadowRaysNum;
+		Vector[] grid = new Vector[shadowRaysNum*shadowRaysNum];
+		double tileWidth = light.width/shadowRaysNum;
+		Random r = new Random();		
+		for (int i=0; i<shadowRaysNum; i++){
+			for (int j=0; j<shadowRaysNum; j++){
+				double alpha = tileWidth*(i+r.nextDouble());
+				double beta = tileWidth*(j+r.nextDouble());
+				grid[i*shadowRaysNum+j] = Vector.sum(vertex, edge1.toLength(alpha), edge2.toLength(beta));
+			}
+		}
+		
 		return grid;
 	}
 

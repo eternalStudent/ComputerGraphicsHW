@@ -52,4 +52,8 @@ public class Plane extends Shape3D{
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	Vector getArbitraryDirection(){
+		return new Vector(1, 0, -normal.x/normal.z);
+	}
 }
