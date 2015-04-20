@@ -254,42 +254,40 @@ public class RayTracer {
 
 	RGB getPixelColor(int x, int y) {
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
-
 		return traceRay(ray, 0);
 	}
 
 	RGB traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray);
-
+		
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
 		}
 
-		RGB color = RGB.BLACK;
-
+		RGB pixelColor = RGB.BLACK;
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
 			
-			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
-			Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
-
-			RGB reflectRGB = closestHit.getReflectRGB().equals(RGB.BLACK) ?
-					RGB.BLACK :
-					closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
+			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);			
+			RGB reflectRGB = RGB.BLACK;
+			if (!closestHit.intersection.equals(reflection) && !closestHit.getReflectRGB().equals(RGB.BLACK)){
+				Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
+				reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
+			}
 			
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
 			RGB lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
 
-			color = RGB.sum(
-				color,
-				getDiffuse(closestHit, shadowRay, lightIntensity),
-				getSpecular(closestHit, reflection, light, lightIntensity),
-				reflectRGB);
+			RGB diffuse = getDiffuse(closestHit, shadowRay);
+			RGB specular = getSpecular(closestHit, reflection, light); 
+			pixelColor = RGB.sum(
+					specular.add(diffuse).multiply(lightIntensity),
+					pixelColor, reflectRGB);
 		}
 
-		return color;
+		return pixelColor;
 	}
 
 	Hit getClosestHit(Ray ray) {
@@ -322,28 +320,27 @@ public class RayTracer {
 		int sum=0;
 		for (int i=0; i<grid.length; i++){
 			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
-			if (!isOccluded(ray, hit)){
-				sum++;
-				
-			}		
+			if (!isOccluded(ray, hit))
+				sum++;	
 		}	
 		return (double)sum/(double)grid.length; 
 	}
 
-	RGB getDiffuse(Hit hit, Ray shadowRay, RGB lightRGB) {
+	RGB getDiffuse(Hit hit, Ray shadowRay) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 
-		return cosOfAngle > 0 ?
-			hit.getDiffuse().multiply(lightRGB).scale(cosOfAngle) :
-			RGB.BLACK;
+		if (cosOfAngle < 0)
+			return RGB.BLACK;
+		return hit.getDiffuse().scale(cosOfAngle);
 	}
 
-	RGB getSpecular(Hit hit, Vector reflection, Light light, RGB lightRGB){
-		double cosOfAngle = scene.camera.position.getCosOfAngle(reflection);
+	RGB getSpecular(Hit hit, Vector reflection, Light light){
+		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
+		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
-		return cosOfAngle > 0 && !hit.getSpecular().equals(RGB.BLACK) ?
-				hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong())) :
-				RGB.BLACK;
+		if (cosOfAngle < 0 || hit.getSpecular().equals(RGB.BLACK))
+			return RGB.BLACK;
+		return hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
 	}
 	
 	Vector[] getLightGrid(Ray ray, Light light){
