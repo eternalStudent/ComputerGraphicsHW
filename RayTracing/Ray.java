@@ -10,7 +10,7 @@ public class Ray {
 			throw new IllegalArgumentException("Direction can't be the zero vector.\n");
 		}
 
-		this.dir = dir;
+		this.dir = dir.normalize();
 		this.p0 = p0;
 	}
 
@@ -38,7 +38,7 @@ public class Ray {
 	Ray moveOriginAlongRay(double epsilon) {
 		return new Ray(getPointAlongRay(epsilon), dir);
 	}
-	
+
 	Plane getPerpendicularPlaneAtOrigion(){
 		return dir.getPerpendicularPlaneAtPoint(p0);
 	}

@@ -24,7 +24,7 @@ public class Plane extends Shape3D{
 	Hit getHit(Ray ray) {
 		double dirDotNorm = ray.dir.dot(normal);
 
-		if (Math.abs(dirDotNorm) < 0.005) {
+		if (Math.abs(dirDotNorm) < 0.00005) {
 			return null;
 		}
 

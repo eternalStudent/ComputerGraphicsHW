@@ -62,34 +62,28 @@ public class Sphere extends Shape3D {
 	}
 
 	public Hit getHit(Ray ray) {
-	    double a = ray.dir.normSquared();
-	    double b = ray.p0.subtract(center).dot(ray.dir);
-	    double c = center.distSquared(ray.p0) - radius*radius;
+	    // Taken from the wiki on line-sphere intersection
+		Vector originMinusCenter = ray.p0.subtract(center);
+	    double halfB = originMinusCenter.dot(ray.dir);
+	    double c = originMinusCenter.normSquared() - radius*radius;
 
-	    double discriminant = b*b-a*c;
+	    double discriminant = halfB*halfB-c;
 	    if (discriminant < 0.0)
 	    	return null;
 
 	    discriminant = Math.sqrt(discriminant);
-	    double t1 = (-b-discriminant)/a;
-	    double t2 = (-b+discriminant)/a;
-	    double t;
+	    double t1 = -halfB - discriminant;
+	    double t2 = -halfB + discriminant;
 
-	    if (t1 < 0 && t2 > 0) {
-	    	t = t2;
+	    if (t1 < 0 && t2 < 0) {
+			return null;
 	    }
-	   	else if (t1 < 0 && t2 < 0) {
-	   		return null;
-	   	}
-	   	else {
-	   		t = t1;
-	   	}
+		double t = (t1 < 0 ? t2 : t1);
 
-	    return new Hit(this, t, ray);
+		return new Hit(this, t, ray);
   	}
 
 	Vector getNormalAtSurfacePoint(Vector point) {
 		return point.subtract(center);
 	}
 }
-
