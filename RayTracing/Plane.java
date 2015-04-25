@@ -38,20 +38,8 @@ public class Plane extends Shape3D{
 	}
 
 	@Override
-	Vector getClosestIntersection(Ray ray) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	Vector getNormalAtSurfacePoint(Vector point) {
 		return normal;
-	}
-
-	@Override
-	List<Vector> getIntersections(Ray ray) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	Vector getArbitraryDirection(){

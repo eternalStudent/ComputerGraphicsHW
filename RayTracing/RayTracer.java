@@ -258,11 +258,11 @@ public class RayTracer {
 	}
 
 	Color traceRay(Ray ray, int iteration) {
-		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.05));
-		
+		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
+
 		if (closestHit == null || iteration == 9) {
 			return scene.settings.background;
-		} 
+		}
 
 		Color pixelColor = Color.BLACK;
 		for (Light light : scene.lights) {
