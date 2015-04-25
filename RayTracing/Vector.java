@@ -112,7 +112,7 @@ public class Vector {
 	}
 
 	Vector projectOntoVector(Vector other) {
-		return toLength(dot(other));
+		return other.toLength(dot(other));
 	}
 
 	Vector pointwiseMultiply(Vector other) {
@@ -127,7 +127,7 @@ public class Vector {
 	double getCosOfAngle(Vector other) {
 		return normalize().dot(other.normalize());
 	}
-	
+
 	Plane getPerpendicularPlaneAtPoint(Vector point){
 		return new Plane(this, dot(point));
 	}

@@ -35,6 +35,10 @@ public class Ray {
 		return new Ray(v1, v2.subtract(v1));
 	}
 
+	Ray moveOriginAlongRay(double epsilon) {
+		return new Ray(getPointAlongRay(epsilon), dir);
+	}
+
 	Plane getPerpendicularPlaneAtOrigion(){
 		return dir.getPerpendicularPlaneAtPoint(p0);
 	}

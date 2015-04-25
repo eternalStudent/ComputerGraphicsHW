@@ -25,7 +25,7 @@ public class Plane extends Shape3D{
 	Hit getHit(Ray ray) {
 		double dirDotNorm = ray.dir.dot(normal);
 
-		if (Math.abs(dirDotNorm) < 0.00005) {
+		if (Math.abs(dirDotNorm) < 0.005) {
 			return null;
 		}
 
@@ -53,7 +53,7 @@ public class Plane extends Shape3D{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	Vector getArbitraryDirection(){
 		Random r = new Random();
 		double x = r.nextDouble();

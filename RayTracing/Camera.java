@@ -2,7 +2,7 @@ package RayTracing;
 
 public class Camera {
 	final Vector position;
-	
+
 	private final Vector screenNormal;
 	private final double screenHeight;
 
@@ -12,6 +12,8 @@ public class Camera {
 	private final Vector xAxis;
 	private final Vector yAxis;
 
+	private final Vector walkingDistance;
+
 	Camera(
 		float px, float py, float pz,
 		float lx, float ly, float lz,
@@ -19,11 +21,11 @@ public class Camera {
 		double screenDistance, double screenWidth,
 		int imageWidth, int imageHeight) {
 
-		this.screenHeight = screenWidth*(imageHeight / imageWidth);
+		this.screenHeight = (screenWidth*imageHeight) / (double)imageWidth;
 		this.imageHeight = imageHeight;
 		this.imageWidth = imageWidth;
 		this.position = new Vector(px, py, pz);
-		
+
 		//constructing screenNormal & screenPlane
 		Vector lookAt = new Vector(lx, ly, lz);
 		screenNormal = lookAt.subtract(position);
@@ -35,6 +37,8 @@ public class Camera {
 		up = up.projectOntoPlane(screenPlane);
 		xAxis = screenNormal.cross(up).toLength(screenWidth / 2);
 		yAxis = up.toLength(screenHeight / 2);
+
+		walkingDistance = screenNormal.toLength(screenDistance);
 	}
 
 	public Ray getRayByPixelCoordinate(int x, int y) {
@@ -42,7 +46,7 @@ public class Camera {
 		double alpha = (2*x - imageWidth) / (double) imageWidth;
 		double beta = (2*y - imageHeight) / (double) imageHeight;
 
-		Vector vectOfPixel = Vector.sum(screenNormal.normalize(),
+		Vector vectOfPixel = Vector.sum(walkingDistance,
 			xAxis.scale(alpha), yAxis.scale(beta));
 
 		return new Ray(position, vectOfPixel);
