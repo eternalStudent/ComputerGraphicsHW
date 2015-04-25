@@ -254,19 +254,17 @@ public class RayTracer {
 
 	RGB getPixelColor(int x, int y) {
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
-		return traceRay(ray, 5);
+		return traceRay(ray, 0);
 	}
 
 	RGB traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray);
 
-		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
+		if (closestHit == null || iteration == 1) {
 			return scene.settings.background;
 		}
 
 		RGB pixelColor = RGB.BLACK;
-
-		RGB reflectRGB = RGB.BLACK;
 
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
@@ -277,13 +275,12 @@ public class RayTracer {
 
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			
+			RGB reflectRGB = RGB.BLACK;
 			if (!closestHit.getReflectRGB().equals(RGB.BLACK) && 
 				closestHitToShadowRay.intersection.equals(closestHit.intersection)) {
 				
 				if (!closestHit.intersection.equals(reflection)) {
-
 					Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
-
 					reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
 				}		
 			}
