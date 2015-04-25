@@ -121,7 +121,7 @@ public class Vector {
 
 	Vector getReflectionAroundNormal(Vector normal) {
 		normal = normal.normalize();
-		return subtract(normal.scale(2*dot(normal)));
+		return subtract(normal.scale(2*dot(normal))).normalize();
 	}
 
 	double getCosOfAngle(Vector other) {
@@ -129,7 +129,7 @@ public class Vector {
 	}
 	
 	Plane getPerpendicularPlaneAtPoint(Vector point){
-		return new Plane(this, dot(point), null);
+		return new Plane(this, dot(point));
 	}
 
 }

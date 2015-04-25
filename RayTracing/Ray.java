@@ -23,7 +23,7 @@ public class Ray {
 		if (!(o instanceof Ray))
 			return false;
 		Ray other = (Ray) o;
-		return ( p0.equals(other.p0) && dir.normalize().equals( other.dir.normalize() ) );
+		return p0.equals(other.p0) && dir.equals(other.dir);
 	}
 
 	@Override
@@ -33,10 +33,6 @@ public class Ray {
 
 	public static Ray createRayByTwoPoints(Vector v1, Vector v2) {
 		return new Ray(v1, v2.subtract(v1));
-	}
-
-	Ray moveOriginAlongRay(double epsilon) {
-		return new Ray(getPointAlongRay(epsilon), dir);
 	}
 
 	Plane getPerpendicularPlaneAtOrigion(){

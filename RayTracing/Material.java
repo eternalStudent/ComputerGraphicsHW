@@ -1,9 +1,9 @@
 package RayTracing;
 
 public class Material {
-	final RGB diffuse;
-	final RGB specular;
-	final RGB reflection;
+	final Color diffuse;
+	final Color specular;
+	final Color reflection;
 	final float phong;
 	final float trans;
 
@@ -14,9 +14,9 @@ public class Material {
 		float phong,
 		float trans) {
 
-		this.diffuse = new RGB(dr, dg, db);
-		this.specular = new RGB(sr, sg, sb);
-		this.reflection = new RGB(rr, rg, rb);
+		this.diffuse = new Color(dr, dg, db);
+		this.specular = new Color(sr, sg, sb);
+		this.reflection = new Color(rr, rg, rb);
 		this.phong = phong;
 		this.trans = trans;
 	}

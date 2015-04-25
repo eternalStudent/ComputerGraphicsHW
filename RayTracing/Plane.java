@@ -1,6 +1,7 @@
 package RayTracing;
 
 import java.util.List;
+import java.util.Random;
 
 public class Plane extends Shape3D{
 	final Vector normal;
@@ -13,10 +14,10 @@ public class Plane extends Shape3D{
 		this.offset = offset;
 	}
 
-	Plane(Vector normal, double offset, Material material) {
-		super(material);
+	Plane(Vector normal, double offset) {
+		super(null);
 
-		this.normal = normal.isNormalized() ? normal : normal.normalize();
+		this.normal = normal.normalize();
 		this.offset = offset;
 	}
 
@@ -54,6 +55,9 @@ public class Plane extends Shape3D{
 	}
 	
 	Vector getArbitraryDirection(){
-		return new Vector(1, 0, -normal.x/normal.z);
+		Random r = new Random();
+		double x = r.nextDouble();
+		double y = r.nextDouble();
+		return new Vector(x, y, -x*normal.x/normal.z-y*normal.y/normal.z);
 	}
 }

@@ -210,12 +210,12 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
-		RGB pixelColor;
-
+		Color pixelColor;
+		
 		int progress = 0;
 		System.out.print("rendering");
 		for (int i = 0; i < imageWidth; i++) {
-
+			
 			int temp = (i*60)/imageWidth;
 			if (temp>progress){
 				progress = temp;
@@ -247,51 +247,42 @@ public class RayTracer {
 
                 // This is already implemented, and should work without adding any code.
 		saveImage(this.imageWidth, rgbData, outputFileName);
-
+		
 		System.out.println("Saved file " + outputFileName);
 
 	}
 
-	RGB getPixelColor(int x, int y) {
+	Color getPixelColor(int x, int y) {
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
 		return traceRay(ray, 0);
 	}
 
-	RGB traceRay(Ray ray, int iteration) {
+	Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray);
-
-		if (closestHit == null || iteration == 1) {
+		
+		if (closestHit == null || iteration == 2) {
 			return scene.settings.background;
 		}
 
-		RGB pixelColor = RGB.BLACK;
-
+		Color pixelColor = Color.BLACK;
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
-
-			Hit closestHitToShadowRay = getClosestHit(shadowRay);
-
-			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			
-			RGB reflectRGB = RGB.BLACK;
-			if (!closestHit.getReflectRGB().equals(RGB.BLACK) && 
-				closestHitToShadowRay.intersection.equals(closestHit.intersection)) {
-				
-				if (!closestHit.intersection.equals(reflection)) {
-					Ray reflectionRay = Ray.createRayByTwoPoints(closestHit.intersection, reflection);
-					reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
-				}		
+			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);			
+			Color reflectRGB = Color.BLACK;
+			if (!isOccluded(shadowRay, closestHit) && !closestHit.getReflectRGB().equals(Color.BLACK)){
+				Ray reflectionRay = new Ray(closestHit.intersection, reflection);
+				reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
 			}
-			RGB specular = getSpecular(closestHit, reflection, light);
-
+			
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
-			RGB lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
+			Color lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
 
-			RGB diffuse = getDiffuse(closestHit, shadowRay);
-
-			pixelColor = RGB.sum(
+			Color diffuse = getDiffuse(closestHit, shadowRay);
+			Color specular = getSpecular(closestHit, reflection, light); 
+			pixelColor = Color.sum(
 					specular.add(diffuse).multiply(lightIntensity),
 					pixelColor, reflectRGB);
 		}
@@ -317,56 +308,36 @@ public class RayTracer {
 
 	boolean isOccluded(Ray shadowRay, Hit hit) {
 		Hit closestHit = getClosestHit(shadowRay);
-
-		if (closestHit == null) {
-			return false;
-		}
-		if (closestHit.shape != hit.shape) {
-			return false;
-		}
-
-		return !closestHit.intersection.equals(hit.intersection);
+		
+		if (closestHit == null)
+			return true;
+		if (closestHit.shape != hit.shape)
+			return true;
+		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.05;
 	}
-
+	
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		int sum=0;
 		for (int i=0; i<grid.length; i++){
 			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
 			if (!isOccluded(ray, hit))
-				sum++;
-		}
-		return (double)sum/(double)grid.length;
+				sum++;	
+		}	
+		return (double)sum/(double)grid.length; 
 	}
-
-	RGB getDiffuse(Hit hit, Ray shadowRay) {
-		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
-
-		if (cosOfAngle < 0)
-			return RGB.BLACK;
-		return hit.getDiffuse().scale(cosOfAngle);
-	}
-
-	RGB getSpecular(Hit hit, Vector reflection, Light light){
-		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
-		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
-
-		if (cosOfAngle < 0 || hit.getSpecular().equals(RGB.BLACK))
-			return RGB.BLACK;
-		return hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
-	}
-
+	
 	Vector[] getLightGrid(Ray ray, Light light){
 		//construct rectangle
 		Plane plane = ray.getPerpendicularPlaneAtOrigion();
 		Vector edge1 = plane.getArbitraryDirection();
 		Vector edge2 = edge1.cross(plane.normal);
 		Vector vertex = Vector.sum(ray.p0, edge1.toLength(-light.width/2), edge2.toLength(-light.width/2));
-
+		
 		int shadowRaysNum = scene.settings.shadowRaysNum;
 		Vector[] grid = new Vector[shadowRaysNum*shadowRaysNum];
 		double tileWidth = light.width/shadowRaysNum;
-		Random r = new Random();
+		Random r = new Random();		
 		for (int i=0; i<shadowRaysNum; i++){
 			for (int j=0; j<shadowRaysNum; j++){
 				double alpha = tileWidth*(i+r.nextDouble());
@@ -374,11 +345,28 @@ public class RayTracer {
 				grid[i*shadowRaysNum+j] = Vector.sum(vertex, edge1.toLength(alpha), edge2.toLength(beta));
 			}
 		}
-
+		
 		return grid;
 	}
 
-	void paintPixel(byte[] rgbData, int x, int y, RGB pixelColor) {
+	Color getDiffuse(Hit hit, Ray shadowRay) {
+		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
+
+		if (cosOfAngle < 0)
+			return Color.BLACK;
+		return hit.getDiffuse().scale(cosOfAngle);
+	}
+
+	Color getSpecular(Hit hit, Vector reflection, Light light){
+		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
+		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
+
+		if (cosOfAngle < 0 || hit.getSpecular().equals(Color.BLACK))
+			return Color.BLACK;
+		return hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
+	}
+
+	void paintPixel(byte[] rgbData, int x, int y, Color pixelColor) {
 		rgbData[(y * this.imageWidth + x) * 3] = pixelColor.getRByte();
 		rgbData[(y * this.imageWidth + x) * 3 + 1] = pixelColor.getGByte();
 		rgbData[(y * this.imageWidth + x) * 3 + 2] = pixelColor.getBByte();
