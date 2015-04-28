@@ -269,18 +269,20 @@ public class RayTracer {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
-
+			
+			//reflection
 			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
 			Color reflectRGB = Color.BLACK;
-
 			if (!isOccluded(shadowRay, closestHit) && !closestHit.getReflectRGB().equals(Color.BLACK)){
 				Ray reflectionRay = new Ray(closestHit.intersection, reflection);
 				reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
 			}
-
+			
+			//light intensity
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
 			Color lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
 
+			//color
 			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, reflection, light);
 			pixelColor = Color.sum(

@@ -1,8 +1,5 @@
 package RayTracing;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Sphere extends Shape3D {
 	final Vector center;
 	final float radius;

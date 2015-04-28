@@ -1,7 +1,5 @@
 package RayTracing;
 
-import java.util.List;
-
 public abstract class Shape3D {
 	final Material material;
 

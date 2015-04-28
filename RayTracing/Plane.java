@@ -1,6 +1,5 @@
 package RayTracing;
 
-import java.util.List;
 import java.util.Random;
 
 public class Plane extends Shape3D{
