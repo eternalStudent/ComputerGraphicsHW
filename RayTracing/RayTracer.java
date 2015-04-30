@@ -284,7 +284,7 @@ public class RayTracer {
 
 			//color
 			Color diffuse = getDiffuse(closestHit, shadowRay);
-			Color specular = getSpecular(closestHit, reflection, light);
+			Color specular = getSpecular(closestHit, shadowRay, light);
 			pixelColor = Color.sum(
 					specular.add(diffuse).multiply(lightIntensity),
 					pixelColor, reflectRGB);
@@ -360,7 +360,8 @@ public class RayTracer {
 		return hit.getDiffuse().scale(cosOfAngle);
 	}
 
-	Color getSpecular(Hit hit, Vector reflection, Light light){
+	Color getSpecular(Hit hit, Ray shadowray, Light light){
+		Vector reflection = shadowray.dir.getReflectionAroundNormal(hit.normal);
 		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
