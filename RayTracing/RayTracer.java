@@ -260,7 +260,7 @@ public class RayTracer {
 	Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
 
-		if (closestHit == null || iteration == 9) {
+		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
 		}
 
@@ -271,9 +271,9 @@ public class RayTracer {
 				closestHit.intersection);
 			
 			//reflection
-			Vector reflection = shadowRay.dir.getReflectionAroundNormal(closestHit.normal);
+			Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
 			Color reflectRGB = Color.BLACK;
-			if (!isOccluded(shadowRay, closestHit) && !closestHit.getReflectRGB().equals(Color.BLACK)){
+			if (!closestHit.getReflectRGB().equals(Color.BLACK)){
 				Ray reflectionRay = new Ray(closestHit.intersection, reflection);
 				reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
 			}
