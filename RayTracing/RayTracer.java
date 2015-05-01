@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -213,24 +212,33 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
-		int N = 4; // number of threads
+		int N = 2; // number of threads
 
 		RayTracingWorker[] workers = new RayTracingWorker[N];
 
 		int hPixels = imageHeight / N;
-
+		
 		ExecutorService es = Executors.newCachedThreadPool();
 
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N - 1; i++) {
 			workers[i] = new RayTracingWorker(i*hPixels, (i+1)*hPixels, imageWidth, scene, rgbData);
 			es.execute(workers[i]);
 		}
+
+		// In case N doesn't divide imageHeight, the last thread gets to do the additional
+		// remainder.
+		workers[N-1] = new RayTracingWorker(
+				(N-1)*hPixels,
+				( N*hPixels + (imageHeight % N) ),
+				imageWidth, scene, rgbData);
+
+		es.execute(workers[N-1]);
+
 		es.shutdown();
 
 		try {
-			boolean finshed = es.awaitTermination(1, TimeUnit.MINUTES);
+			es.awaitTermination(10, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

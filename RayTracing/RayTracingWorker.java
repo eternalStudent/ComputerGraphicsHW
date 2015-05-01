@@ -8,7 +8,7 @@ class RayTracingWorker implements Runnable {
 	private int bottomRow;
 	private byte[] rgbData;
 	private int topRow;
-    
+
     RayTracingWorker(int bottomRow, int topRow, int imageWidth, Scene scene,
             byte[] rgbData) {
     	this.bottomRow = bottomRow;
@@ -17,21 +17,21 @@ class RayTracingWorker implements Runnable {
         this.imageWidth = imageWidth;
         this.rgbData = rgbData;
     }
-    
+
     @Override
     public void run() {
-        
+
         Color pixelColor;
         int progress = 0;
-        
+
         for (int i = bottomRow; i < topRow; i++) {
-        	
+
         	int temp = (i*60)/imageWidth;
 			if (temp>progress){
 				progress = temp;
 				System.out.print('.');
 			}
-			
+
         	for (int j = 0; j < imageWidth; j++) {
                 pixelColor = getPixelColor(i, j);
                 paintPixel(rgbData, i, j, pixelColor);
@@ -46,7 +46,7 @@ class RayTracingWorker implements Runnable {
 	}
 
 	Color traceRay(Ray ray, int iteration) {
-		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
+		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005), null);
 
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
@@ -65,7 +65,28 @@ class RayTracingWorker implements Runnable {
 			//color
 			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, shadowRay, light);
-			pixelColor = pixelColor.add( ( diffuse.add(specular) ).multiply(lightIntensity) );
+
+
+			//transparency
+			Color transparency = Color.BLACK;
+			float opacity = closestHit.getTransparency();
+
+			if (opacity != 0) {
+				Hit secondHit = getClosestHit(ray.moveOriginAlongRay(0.005), closestHit.shape);
+
+				if (secondHit != null) {
+					Ray transRay = new Ray(secondHit.intersection, ray.dir);
+					transparency = traceRay(transRay, iteration + 1);
+				} else {
+					transparency = scene.settings.background;
+				}
+			}
+
+			pixelColor = Color.sum(
+				pixelColor,
+				diffuse.add(specular).multiply(lightIntensity).scale(1 - opacity),
+				transparency.scale(opacity)
+			);
 		}
 
 		//reflection
@@ -78,7 +99,7 @@ class RayTracingWorker implements Runnable {
 		return pixelColor.add(reflectRGB);
 	}
 
-	Hit getClosestHit(Ray ray) {
+	Hit getClosestHit(Ray ray, Shape3D ignore) {
 		Hit closestHit = null;
 		double minDist = Double.MAX_VALUE;
 
@@ -86,8 +107,10 @@ class RayTracingWorker implements Runnable {
 			Hit hit = shape.getHit(ray);
 
 			if (hit != null && hit.dist < minDist) {
-				closestHit = hit;
-				minDist = hit.dist;
+				if (ignore == null || ignore != hit.shape) {
+					closestHit = hit;
+					minDist = hit.dist;
+				}
 			}
 		}
 
@@ -95,7 +118,7 @@ class RayTracingWorker implements Runnable {
 	}
 
 	boolean isOccluded(Ray shadowRay, Hit hit) {
-		Hit closestHit = getClosestHit(shadowRay);
+		Hit closestHit = getClosestHit(shadowRay, null);
 
 		if (closestHit == null)
 			return true;

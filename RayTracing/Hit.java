@@ -29,4 +29,8 @@ public class Hit {
 	Color getReflectRGB() {
 		return shape.material.reflection;
 	}
+
+	float getTransparency() {
+		return shape.material.trans;
+	}
 }
