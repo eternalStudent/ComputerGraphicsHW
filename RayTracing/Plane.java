@@ -9,7 +9,7 @@ public class Plane extends Shape3D{
 	Plane(double nx, double ny, double nz, double offset, Material material) {
 		super(material);
 
-		normal = (new Vector(nx, ny, nz)).normalize();
+		normal = (new Vector(nx, ny, nz));
 		this.offset = offset;
 	}
 
@@ -22,13 +22,13 @@ public class Plane extends Shape3D{
 
 	@Override
 	Hit getHit(Ray ray) {
-		double dirDotNorm = ray.dir.dot(normal);
+		double cosOfAngle = ray.dir.getCosOfAngle(normal);
 
-		if (Math.abs(dirDotNorm) < 0.005) {
+		if (Math.abs(cosOfAngle) < 0.005) {
 			return null;
 		}
 
-		double t = (offset - normal.dot(ray.p0)) / dirDotNorm;
+		double t = (offset - normal.dot(ray.p0)) / cosOfAngle;
 		if (t < 0) {
 			return null;
 		}
@@ -41,7 +41,7 @@ public class Plane extends Shape3D{
 		return normal;
 	}
 
-	Vector getArbitraryDirection(){
+	Vector getRandomDirection(){
 		Random r = new Random();
 		double x = r.nextDouble();
 		double y = r.nextDouble();

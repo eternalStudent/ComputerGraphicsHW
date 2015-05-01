@@ -2,7 +2,7 @@ package RayTracing;
 
 public class Light {
 	final Vector position;
-	final Color rgb;
+	final Color color;
 	final double spec;
 	final double shadow;
 	final double width;
@@ -13,7 +13,7 @@ public class Light {
 		double spec, double shadow, double width) {
 
 		this.position = new Vector(px, py, pz);
-		this.rgb = new Color(r, g, b);
+		this.color = new Color(r, g, b);
 		this.shadow = shadow;
 		this.width = width;
 		this.spec = spec;

@@ -46,57 +46,52 @@ class RayTracingWorker implements Runnable {
 	}
 
 	Color traceRay(Ray ray, int iteration) {
-		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005), null);
+		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
 
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
 		}
 
-		Color pixelColor = Color.BLACK;
+		Color baseColor = Color.BLACK;
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
 
-			//light intensity
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
-			Color lightIntensity = light.rgb.scale(illumination + (1-illumination)*(1-light.shadow));
-
-			//color
-			Color diffuse = getDiffuse(closestHit, shadowRay);
+			double occlusion = 1 - illumination;
+			double lightIntensity = 1-light.shadow;
+			Color lightColor = light.color;
+			Color diffuse = getDiffuse(closestHit, shadowRay).scale(illumination+occlusion*lightIntensity);
 			Color specular = getSpecular(closestHit, shadowRay, light);
 
-
-			//transparency
-			Color transparency = Color.BLACK;
-			float opacity = closestHit.getTransparency();
-
-			if (opacity != 0) {
-				Hit secondHit = getClosestHit(ray.moveOriginAlongRay(0.005), closestHit.shape);
-
-				if (secondHit != null) {
-					Ray transRay = new Ray(secondHit.intersection, ray.dir);
-					transparency = traceRay(transRay, iteration + 1);
-				} else {
-					transparency = scene.settings.background;
-				}
-			}
-
-			pixelColor = Color.sum(
-				pixelColor,
-				diffuse.add(specular).multiply(lightIntensity).scale(1 - opacity),
-				transparency.scale(opacity)
-			);
+			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor));
 		}
-
+		
 		//reflection
 		Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
-		Color reflectRGB = Color.BLACK;
-		if (!closestHit.getReflectRGB().equals(Color.BLACK)){
-			Ray reflectionRay = new Ray(closestHit.intersection, reflection);
-			reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
+		Color reflectionColor = Color.BLACK;
+		if (!closestHit.getReflectColor().equals(Color.BLACK)){
+			Ray reflectionRay = new Ray(closestHit.intersection, reflection);					
+			reflectionColor = closestHit.getReflectColor().multiply(traceRay(reflectionRay, iteration + 1));
 		}
-		return pixelColor.add(reflectRGB);
+		Color opacityColor = baseColor.add(reflectionColor);
+		
+		//transparency
+		Color transparencyColor = Color.BLACK;
+		float transparency = closestHit.getTransparency();
+		float opacity = 1-transparency;
+		if (transparency != 0) {
+			Hit secondHit = getClosestHit(ray.moveOriginAlongRay(0.005), closestHit.shape);
+			if (secondHit != null) {
+				Ray transRay = new Ray(secondHit.intersection, ray.dir);
+				transparencyColor = traceRay(transRay, iteration + 1);
+			} else {
+				transparencyColor = scene.settings.background;
+			}
+		}
+		
+		return transparencyColor.scale(transparency).add(opacityColor.scale(opacity));
 	}
 
 	Hit getClosestHit(Ray ray, Shape3D ignore) {
@@ -116,17 +111,11 @@ class RayTracingWorker implements Runnable {
 
 		return closestHit;
 	}
-
-	boolean isOccluded(Ray shadowRay, Hit hit) {
-		Hit closestHit = getClosestHit(shadowRay, null);
-
-		if (closestHit == null)
-			return true;
-		if (closestHit.shape != hit.shape)
-			return true;
-		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.000005;
+	
+	Hit getClosestHit(Ray ray){
+		return getClosestHit(ray, null);
 	}
-
+	
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		int sum=0;
@@ -141,7 +130,7 @@ class RayTracingWorker implements Runnable {
 	Vector[] getLightGrid(Ray ray, Light light){
 		//construct rectangle
 		Plane plane = ray.getPerpendicularPlaneAtOrigion();
-		Vector edge1 = plane.getArbitraryDirection();
+		Vector edge1 = plane.getRandomDirection();
 		Vector edge2 = edge1.cross(plane.normal);
 		Vector vertex = Vector.sum(ray.p0, edge1.toLength(-light.width/2), edge2.toLength(-light.width/2));
 
@@ -160,22 +149,32 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
+	boolean isOccluded(Ray shadowRay, Hit hit) {
+		Hit closestHit = getClosestHit(shadowRay);
+
+		if (closestHit == null)
+			return true;
+		if (closestHit.shape != hit.shape)
+			return true;
+		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.000005;
+	}
+
 	Color getDiffuse(Hit hit, Ray shadowRay) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 
 		if (cosOfAngle < 0)
 			return Color.BLACK;
-		return hit.getDiffuse().scale(cosOfAngle);
+		return hit.getDiffuseColor().scale(cosOfAngle);
 	}
 
-	Color getSpecular(Hit hit, Ray shadowray, Light light){
-		Vector reflection = shadowray.dir.getReflectionAroundNormal(hit.normal);
+	Color getSpecular(Hit hit, Ray shadowRay, Light light){
+		Vector reflection = shadowRay.dir.getReflectionAroundNormal(hit.normal);
 		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
-		if (cosOfAngle < 0 || hit.getSpecular().equals(Color.BLACK))
+		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK))
 			return Color.BLACK;
-		return hit.getSpecular().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
+		return hit.getSpecularColor().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
 	}
 
 

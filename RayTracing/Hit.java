@@ -14,11 +14,11 @@ public class Hit {
 		normal = shape.getNormalAtSurfacePoint(intersection);
 	}
 
-	Color getDiffuse() {
+	Color getDiffuseColor() {
 		return shape.material.diffuse;
 	}
 
-	Color getSpecular() {
+	Color getSpecularColor() {
 		return shape.material.specular;
 	}
 
@@ -26,7 +26,7 @@ public class Hit {
 		return shape.material.phong;
 	}
 
-	Color getReflectRGB() {
+	Color getReflectColor() {
 		return shape.material.reflection;
 	}
 

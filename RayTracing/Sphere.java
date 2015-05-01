@@ -38,6 +38,6 @@ public class Sphere extends Shape3D {
   	}
 
 	Vector getNormalAtSurfacePoint(Vector point) {
-		return point.subtract(center).normalize();
+		return point.subtract(center);
 	}
 }
