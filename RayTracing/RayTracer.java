@@ -259,38 +259,35 @@ public class RayTracer {
 
 	Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
-
+		
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
 		}
-
+		
 		Color pixelColor = Color.BLACK;
 		for (Light light : scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
 			
-			//reflection
-			Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
-			Color reflectRGB = Color.BLACK;
-			if (!closestHit.getReflectRGB().equals(Color.BLACK)){
-				Ray reflectionRay = new Ray(closestHit.intersection, reflection);
-				reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
-			}
-			
 			//light intensity
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
-			Color lightIntensity = light.rgb.scale(illumination).add(light.rgb.scale((1-illumination)*(1-light.shadow)));
+			Color lightIntensity = light.rgb.scale(illumination + (1-illumination)*(1-light.shadow));
 
 			//color
 			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, shadowRay, light);
-			pixelColor = Color.sum(
-					specular.add(diffuse).multiply(lightIntensity),
-					pixelColor, reflectRGB);
+			pixelColor = pixelColor.add( ( diffuse.add(specular) ).multiply(lightIntensity) );
 		}
-
-		return pixelColor;
+		
+		//reflection
+		Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
+		Color reflectRGB = Color.BLACK;
+		if (!closestHit.getReflectRGB().equals(Color.BLACK)){
+			Ray reflectionRay = new Ray(closestHit.intersection, reflection);
+			reflectRGB = closestHit.getReflectRGB().multiply(traceRay(reflectionRay, iteration + 1));
+		}
+		return pixelColor.add(reflectRGB);
 	}
 
 	Hit getClosestHit(Ray ray) {
@@ -316,7 +313,7 @@ public class RayTracer {
 			return true;
 		if (closestHit.shape != hit.shape)
 			return true;
-		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.05;
+		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.000005;
 	}
 
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
@@ -327,7 +324,7 @@ public class RayTracer {
 			if (!isOccluded(ray, hit))
 				sum++;
 		}
-		return (double)sum/(double)grid.length;
+		return (double)sum/grid.length;
 	}
 
 	Vector[] getLightGrid(Ray ray, Light light){
