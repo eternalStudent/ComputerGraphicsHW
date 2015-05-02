@@ -62,10 +62,10 @@ class RayTracingWorker implements Runnable {
 			double occlusion = 1 - illumination;
 			double lightIntensity = 1-light.shadow;
 			Color lightColor = light.color;
-			Color diffuse = getDiffuse(closestHit, shadowRay).scale(illumination+occlusion*lightIntensity);
+			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, shadowRay, light, ray);
 
-			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor));
+			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor).scale(illumination+occlusion*lightIntensity));
 		}
 		
 		//reflection
@@ -85,7 +85,11 @@ class RayTracingWorker implements Runnable {
 			transparencyColor = traceRay(transRay, iteration + 1);
 		}
 		
-		return transparencyColor.scale(transparency).add(baseColor.scale(opacity)).add(reflectionColor);
+		return Color.sum(
+				transparencyColor.scale(transparency), 
+				baseColor.scale(opacity), 
+				reflectionColor
+				);
 	}
 
 	Hit getClosestHit(Ray ray, Shape3D ignore) {
@@ -112,13 +116,12 @@ class RayTracingWorker implements Runnable {
 	
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
-		int sum=0;
+		int sumOcclusion=0;
 		for (int i=0; i<grid.length; i++){
 			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
-			if (!isOccluded(ray, hit))
-				sum++;
+			sumOcclusion += getOcclusionLevel(ray, hit);
 		}
-		return (double)sum/grid.length;
+		return (double)sumOcclusion/grid.length;
 	}
 
 	Vector[] getLightGrid(Ray ray, Light light){
@@ -143,14 +146,16 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	boolean isOccluded(Ray shadowRay, Hit hit) {
+	double getOcclusionLevel(Ray shadowRay, Hit hit) {
 		Hit closestHit = getClosestHit(shadowRay);
 
 		if (closestHit == null)
-			return true;
+			return 0;
 		if (closestHit.shape != hit.shape)
-			return true;
-		return closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.000005;
+			return closestHit.getTransparency();
+		if (closestHit.dist*closestHit.dist < hit.intersection.distSquared(shadowRay.p0)-0.000005)
+			return closestHit.getTransparency();
+		return 1;
 	}
 
 	Color getDiffuse(Hit hit, Ray shadowRay) {
@@ -163,7 +168,7 @@ class RayTracingWorker implements Runnable {
 
 	Color getSpecular(Hit hit, Ray shadowRay, Light light, Ray ray){
 		Vector reflection = shadowRay.dir.getReflectionAroundNormal(hit.normal);
-		Vector viewDirection = ray.p0.subtract(hit.intersection);
+		Vector viewDirection = ray.dir.reverse();
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
 		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK))
