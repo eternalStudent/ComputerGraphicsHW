@@ -65,7 +65,13 @@ class RayTracingWorker implements Runnable {
 			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, shadowRay, light, ray);
 
+<<<<<<< HEAD
 			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor).scale(illumination+occlusion*lightIntensity));
+=======
+			baseColor = baseColor.add(diffuse.add(specular).
+					multiply(lightColor).
+					scale(illumination+occlusion*lightIntensity));
+>>>>>>> origin/master
 		}
 		
 		//reflection
