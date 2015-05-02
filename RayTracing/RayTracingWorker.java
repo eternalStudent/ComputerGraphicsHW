@@ -121,7 +121,16 @@ class RayTracingWorker implements Runnable {
 		double sumExposure=0;
 		for (int i=0; i<grid.length; i++){
 			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
-			sumExposure += getExposureLevel(ray, hit);
+			double exposure = 1;
+			while (exposure > 0){
+				exposure += getExposureLevel(ray, hit)-1;
+				Hit closestHit = getClosestHit(ray);
+				if (closestHit == null || closestHit.shape == hit.shape)
+					break;
+				ray = new Ray(closestHit.intersection, ray.dir);
+			}
+			if (exposure>0)
+				sumExposure += exposure;
 		}
 		return sumExposure/(double)grid.length;
 	}
