@@ -63,7 +63,7 @@ class RayTracingWorker implements Runnable {
 			double lightIntensity = 1-light.shadow;
 			Color lightColor = light.color;
 			Color diffuse = getDiffuse(closestHit, shadowRay).scale(illumination+occlusion*lightIntensity);
-			Color specular = getSpecular(closestHit, shadowRay, light);
+			Color specular = getSpecular(closestHit, shadowRay, light, ray);
 
 			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor));
 		}
@@ -166,9 +166,9 @@ class RayTracingWorker implements Runnable {
 		return hit.getDiffuseColor().scale(cosOfAngle);
 	}
 
-	Color getSpecular(Hit hit, Ray shadowRay, Light light){
+	Color getSpecular(Hit hit, Ray shadowRay, Light light, Ray ray){
 		Vector reflection = shadowRay.dir.getReflectionAroundNormal(hit.normal);
-		Vector viewDirection = scene.camera.position.subtract(hit.intersection);
+		Vector viewDirection = ray.p0.subtract(hit.intersection);
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
 		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK))

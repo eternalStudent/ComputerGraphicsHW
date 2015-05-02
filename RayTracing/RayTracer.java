@@ -212,7 +212,7 @@ public class RayTracer {
 		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
 
-		int N = 2; // number of threads
+		int N = 4; // number of threads
 
 		RayTracingWorker[] workers = new RayTracingWorker[N];
 
