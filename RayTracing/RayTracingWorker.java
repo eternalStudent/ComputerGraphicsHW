@@ -81,13 +81,8 @@ class RayTracingWorker implements Runnable {
 		float transparency = closestHit.getTransparency();
 		float opacity = 1-transparency;
 		if (transparency != 0) {
-			Hit secondHit = getClosestHit(ray.moveOriginAlongRay(0.005), closestHit.shape);
-			if (secondHit != null) {
-				Ray transRay = new Ray(secondHit.intersection, ray.dir);
-				transparencyColor = traceRay(transRay, iteration + 1);
-			} else {
-				transparencyColor = scene.settings.background;
-			}
+			Ray transRay = new Ray(closestHit.intersection, ray.dir);
+			transparencyColor = traceRay(transRay, iteration + 1);
 		}
 		
 		return transparencyColor.scale(transparency).add(baseColor.scale(opacity)).add(reflectionColor);
