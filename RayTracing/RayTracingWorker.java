@@ -65,13 +65,9 @@ class RayTracingWorker implements Runnable {
 			Color diffuse = getDiffuse(closestHit, shadowRay);
 			Color specular = getSpecular(closestHit, shadowRay, light, ray);
 
-<<<<<<< HEAD
-			baseColor = baseColor.add(diffuse.add(specular).multiply(lightColor).scale(illumination+occlusion*lightIntensity));
-=======
 			baseColor = baseColor.add(diffuse.add(specular).
 					multiply(lightColor).
 					scale(illumination+occlusion*lightIntensity));
->>>>>>> origin/master
 		}
 		
 		//reflection
@@ -122,12 +118,12 @@ class RayTracingWorker implements Runnable {
 	
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
-		int sumOcclusion=0;
+		double sumExposure=0;
 		for (int i=0; i<grid.length; i++){
 			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
-			sumOcclusion += getOcclusionLevel(ray, hit);
+			sumExposure += getExposureLevel(ray, hit);
 		}
-		return (double)sumOcclusion/grid.length;
+		return sumExposure/(double)grid.length;
 	}
 
 	Vector[] getLightGrid(Ray ray, Light light){
@@ -152,7 +148,7 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	double getOcclusionLevel(Ray shadowRay, Hit hit) {
+	double getExposureLevel(Ray shadowRay, Hit hit) {
 		Hit closestHit = getClosestHit(shadowRay);
 
 		if (closestHit == null)
