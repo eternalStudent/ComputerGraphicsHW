@@ -75,7 +75,6 @@ class RayTracingWorker implements Runnable {
 			Ray reflectionRay = new Ray(closestHit.intersection, reflection);					
 			reflectionColor = closestHit.getReflectColor().multiply(traceRay(reflectionRay, iteration + 1));
 		}
-		Color opacityColor = baseColor.add(reflectionColor);
 		
 		//transparency
 		Color transparencyColor = Color.BLACK;
@@ -91,7 +90,7 @@ class RayTracingWorker implements Runnable {
 			}
 		}
 		
-		return transparencyColor.scale(transparency).add(opacityColor.scale(opacity));
+		return transparencyColor.scale(transparency).add(baseColor.scale(opacity)).add(reflectionColor);
 	}
 
 	Hit getClosestHit(Ray ray, Shape3D ignore) {
