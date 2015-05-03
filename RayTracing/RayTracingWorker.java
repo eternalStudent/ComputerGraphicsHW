@@ -3,6 +3,7 @@ package RayTracing;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
+	static final double EPSILON = 1.0/1024.0;
     private Scene scene;
     private int imageWidth;
 	private int bottomRow;
@@ -44,7 +45,7 @@ class RayTracingWorker implements Runnable {
 	}
 
 	private Color traceRay(Ray ray, int iteration) {
-		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
+		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(EPSILON));
 
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;

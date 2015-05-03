@@ -100,7 +100,8 @@ public class Vector {
 		if (!(o instanceof Vector))
 			return false;
 		Vector other = (Vector) o;
-		return ( Math.abs(x-other.x)<0.0005 && Math.abs(y-other.y)<0.0005 && Math.abs(z-other.z)<0.0005 );
+		double epsilon = 1.0/1024.0;
+		return ( Math.abs(x-other.x)<epsilon && Math.abs(y-other.y)<epsilon && Math.abs(z-other.z)<epsilon );
 	}
 
 	@Override

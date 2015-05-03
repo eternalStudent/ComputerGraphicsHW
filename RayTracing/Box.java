@@ -2,7 +2,9 @@ package RayTracing;
 
 public class Box extends Shape3D {
 	
+	static final double EPSILON = 1.0/2048.0;
 	final double x0, y0, z0, x1, y1, z1;
+	final Vector position;
 	final Vector rotation;
 
 	public Box(double px, double py, double pz, 
@@ -14,6 +16,7 @@ public class Box extends Shape3D {
 		x1 = px+sx/2;
 		y1 = py+sy/2;
 		z1 = pz+sz/2;
+		position = new Vector(px, py, pz);
 		rotation = new Vector(rx, ry, rz);
 	}
 
@@ -53,7 +56,32 @@ public class Box extends Shape3D {
 
 	@Override
 	Vector getNormalAtSurfacePoint(Vector point) {
+		if (isVertex(point)){
+			return point.subtract(position);
+		}	
+		if (point.y+EPSILON >= y0 && point.y-EPSILON <= y1 && point.z+EPSILON >= z0 && point.z-EPSILON <= z1){
+			if (Math.abs(point.x-x0)<EPSILON)
+				return new Vector(-1, 0, 0);
+			return new Vector(1, 0, 0);
+		}	
+		if (point.x+EPSILON >= x0 && point.x-EPSILON <= x1 && point.z+EPSILON >= z0 && point.z-EPSILON <= z1){
+			if (Math.abs(point.y-y0)<EPSILON)
+				return new Vector(0, -1, 0);
+			return new Vector(0, 1, 0);
+		}	
+		if (point.x+EPSILON >= x0 && point.x-EPSILON <= x1 && point.y+EPSILON >= y0 && point.y-EPSILON <= y1){
+			if (Math.abs(point.z-z0)<EPSILON)
+				return new Vector(0, 0, -1);
+			return new Vector(0, 0, 1);
+		}	
+		System.out.println("Herp!");
 		return Vector.ZERO;
+	}
+	
+	boolean isVertex(Vector point){
+		return (Math.abs(point.x-x0)<EPSILON || Math.abs(point.x-x1)<EPSILON)
+				&& (Math.abs(point.y-y0)<EPSILON || Math.abs(point.y-y1)<EPSILON)
+				&& (Math.abs(point.z-z0)<EPSILON || Math.abs(point.z-z1)<EPSILON);
 	}
 
 }
