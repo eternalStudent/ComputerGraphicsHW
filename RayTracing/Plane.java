@@ -6,34 +6,30 @@ public class Plane extends Shape3D{
 	final Vector normal;
 	final double offset;
 
-	Plane(double nx, double ny, double nz, double offset, Material material) {
-		super(material);
-
+	Plane(double nx, double ny, double nz, double offset) {
 		normal = (new Vector(nx, ny, nz));
 		this.offset = offset;
 	}
 
 	Plane(Vector normal, double offset) {
-		super(null);
-
 		this.normal = normal.normalize();
 		this.offset = offset;
 	}
 
 	@Override
-	Hit getHit(Ray ray) {
+	double getHit(Ray ray) {
 		double cosOfAngle = ray.dir.getCosOfAngle(normal);
 
 		if (Math.abs(cosOfAngle) < 0.005) {
-			return null;
+			return -1;
 		}
 
 		double t = (offset - normal.dot(ray.p0)) / cosOfAngle;
 		if (t < 0) {
-			return null;
+			return -1;
 		}
 
-		return new Hit(this, t, ray);
+		return t;
 	}
 
 	@Override

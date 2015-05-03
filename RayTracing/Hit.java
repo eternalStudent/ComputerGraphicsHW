@@ -1,36 +1,37 @@
 package RayTracing;
 
-public class Hit {
+public class Hit{
 	final double dist;
-	final Shape3D shape;
+	final Primitive primitive;
 	final Vector normal;
 	final Vector intersection;
 
-	Hit(Shape3D shape, double dist, Ray ray) {
+	Hit(Primitive primitive, double dist, Ray ray) {
 		this.dist = dist;
-		this.shape = shape;
+		this.primitive = primitive;
 
 		intersection = ray.getPointAlongRay(dist);
-		normal = shape.getNormalAtSurfacePoint(intersection);
+		normal = primitive.shape.getNormalAtSurfacePoint(intersection);
 	}
 
 	Color getDiffuseColor() {
-		return shape.material.diffuse;
+		return primitive.material.diffuse;
 	}
 
 	Color getSpecularColor() {
-		return shape.material.specular;
+		return primitive.material.specular;
 	}
 
 	float getPhong() {
-		return shape.material.phong;
+		return primitive.material.phong;
 	}
 
 	Color getReflectColor() {
-		return shape.material.reflection;
+		return primitive.material.reflection;
 	}
 
 	float getTransparency() {
-		return shape.material.trans;
+		return primitive.material.trans;
 	}
+
 }

@@ -1,8 +1,5 @@
 package RayTracing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
@@ -97,26 +94,20 @@ class RayTracingWorker implements Runnable {
 				);
 	}
 
-	Hit getClosestHit(Ray ray, Shape3D ignore) {
+	Hit getClosestHit(Ray ray) {
 		Hit closestHit = null;
 		double minDist = Double.MAX_VALUE;
 
-		for (Shape3D shape : scene.shapes) {
-			Hit hit = shape.getHit(ray);
+		for (Primitive primitive : scene.primitives) {
+			Hit hit = primitive.getHit(ray);
 
 			if (hit != null && hit.dist < minDist) {
-				if (ignore == null || ignore != hit.shape) {
 					closestHit = hit;
 					minDist = hit.dist;
-				}
 			}
 		}
 
 		return closestHit;
-	}
-	
-	Hit getClosestHit(Ray ray){
-		return getClosestHit(ray, null);
 	}
 	
 	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
@@ -151,29 +142,19 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	double getExposureLevel(Ray shadowRay, Hit hit) {
-		List<Hit> hits = getHits(shadowRay, hit);
-		if (hits.isEmpty())
-			return 1;
+	double getExposureLevel(Ray shadowRay, Hit finalHit) {
 		double exposure = 1;
-		for (int i=0; i<hits.size(); i++)
-			exposure *= hits.get(i).getTransparency();
+		for (Primitive primitive : scene.primitives) {
+			Hit hit = primitive.getHit(shadowRay);
+			if (hit != null){
+				if (hit.primitive == finalHit.primitive)
+					break;
+				exposure *= hit.getTransparency();
+			}	
+		}
 		return exposure;
 	}
 	
-	List<Hit> getHits(Ray ray, Hit finalHit){
-		List<Hit> hits = new ArrayList<>();
-		for (Shape3D shape : scene.shapes) {
-			Hit hit = shape.getHit(ray);
-			if (hit != null){
-				if (hit.shape == finalHit.shape)
-					break;
-				hits.add(hit);
-			}	
-		}
-		return hits;
-	}
-
 	Color getDiffuse(Hit hit, Ray shadowRay) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 

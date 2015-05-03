@@ -93,8 +93,7 @@ public class RayTracer {
 				String code = line.substring(0, 3).toLowerCase();
 				// Split according to white space characters:
 				String[] params = line.substring(3).trim().toLowerCase().split("\\s+");
-				if (code.equals("cam"))
-				{
+				if (code.equals("cam")){
                     scene.camera = new Camera(
                     	Float.parseFloat(params[0]),
 						Float.parseFloat(params[1]),
@@ -111,8 +110,7 @@ public class RayTracer {
 
 					System.out.println(String.format("Parsed camera parameters (line %d)", lineNum));
 				}
-				else if (code.equals("set"))
-				{
+				else if (code.equals("set")){
                     scene.settings = new SceneSettings(
                     	Double.parseDouble(params[0]),
 						Double.parseDouble(params[1]),
@@ -123,8 +121,7 @@ public class RayTracer {
 
 					System.out.println(String.format("Parsed general settings (line %d)", lineNum));
 				}
-				else if (code.equals("mtl"))
-				{
+				else if (code.equals("mtl")){
 					scene.materials.add(new Material(
 						Double.parseDouble(params[0]),
 						Double.parseDouble(params[1]),
@@ -141,38 +138,34 @@ public class RayTracer {
 
 					System.out.println(String.format("Parsed material (line %d)", lineNum));
 				}
-				else if (code.equals("sph"))
-				{
-	                scene.shapes.add(new Sphere(
+				else if (code.equals("sph")){
+	                scene.primitives.add(new Primitive(new Sphere(
 	                	Float.parseFloat(params[0]),
 	                	Float.parseFloat(params[1]),
 		                Float.parseFloat(params[2]),
-		                Float.parseFloat(params[3]),
+		                Float.parseFloat(params[3])),
 		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 
 					System.out.println(String.format("Parsed sphere (line %d)", lineNum));
 				}
-				else if (code.equals("pln"))
-				{
-                    scene.shapes.add(new Plane(
+				else if (code.equals("pln")){
+                    scene.primitives.add(new Primitive(new Plane(
 	                	Double.parseDouble(params[0]),
 	                	Double.parseDouble(params[1]),
 		                Double.parseDouble(params[2]),
-		                Double.parseDouble(params[3]),
+		                Double.parseDouble(params[3])),
 		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 
 					System.out.println(String.format("Parsed plane (line %d)", lineNum));
 				}
-				else if (code.equals("box"))
-				{
+				else if (code.equals("box")){
                                         // Add code here to parse box parameters
 
 					System.out.println(String.format("Parsed box (line %d)", lineNum));
 				}
-				else if (code.equals("lgt"))
-				{
+				else if (code.equals("lgt")){
                     scene.lights.add(new Light(
                     	Double.parseDouble(params[0]),
 	                	Double.parseDouble(params[1]),
@@ -205,35 +198,30 @@ public class RayTracer {
 	/**
 	 * Renders the loaded scene and saves it to the specified file location.
 	 */
-	public void renderScene(String outputFileName)
-	{
+	public void renderScene(String outputFileName){
 		long startTime = System.currentTimeMillis();
 
-		// Create a byte array to hold the pixel data:
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
-
-		int N = 4; // number of threads
-
-		RayTracingWorker[] workers = new RayTracingWorker[N];
-
-		int hPixels = imageHeight / N;
 		
+		int numOfThreads = 4;
+		RayTracingWorker[] workers = new RayTracingWorker[numOfThreads];
+		int hPixels = imageHeight / numOfThreads;
 		ExecutorService es = Executors.newCachedThreadPool();
-
-		for (int i = 0; i < N - 1; i++) {
+		
+		System.out.print("Rendering");
+		for (int i = 0; i < numOfThreads - 1; i++) {
 			workers[i] = new RayTracingWorker(i*hPixels, (i+1)*hPixels, imageWidth, scene, rgbData);
 			es.execute(workers[i]);
 		}
 
 		// In case N doesn't divide imageHeight, the last thread gets to do the additional
 		// remainder.
-		workers[N-1] = new RayTracingWorker(
-				(N-1)*hPixels,
-				( N*hPixels + (imageHeight % N) ),
+		workers[numOfThreads-1] = new RayTracingWorker(
+				(numOfThreads-1)*hPixels,
+				( numOfThreads*hPixels + (imageHeight % numOfThreads) ),
 				imageWidth, scene, rgbData);
-
-		es.execute(workers[N-1]);
-
+		es.execute(workers[numOfThreads-1]);
+		
 		es.shutdown();
 
 		try {
@@ -241,28 +229,12 @@ public class RayTracer {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		
 		System.out.println();
-				// Put your ray tracing code here!
-                //
-                // Write pixel color values in RGB format to rgbData:
-                // Pixel [x, y] red component is in rgbData[(y * this.imageWidth + x) * 3]
-                //            green component is in rgbData[(y * this.imageWidth + x) * 3 + 1]
-                //             blue component is in rgbData[(y * this.imageWidth + x) * 3 + 2]
-                //
-                // Each of the red, green and blue components should be a byte, i.e. 0-255
-
-
 		long endTime = System.currentTimeMillis();
 		Long renderTime = endTime - startTime;
-
-                // The time is measured for your own convenience, rendering speed will not affect your score
-                // unless it is exceptionally slow (more than a couple of minutes)
 		System.out.println("Finished rendering scene in " + renderTime.toString() + " milliseconds.");
-
-                // This is already implemented, and should work without adding any code.
 		saveImage(this.imageWidth, rgbData, outputFileName);
-
 		System.out.println("Saved file " + outputFileName);
 
 	}
