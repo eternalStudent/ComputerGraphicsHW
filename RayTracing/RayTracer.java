@@ -166,7 +166,7 @@ public class RayTracer {
 		                Double.parseDouble(params[6]),
 		                Double.parseDouble(params[7]),
 		                Double.parseDouble(params[8])),
-		                scene.materials.get(Integer.parseInt(params[9]) - 1))
+		                scene.materials.get(0))
 		            );
 					
 					System.out.println(String.format("Parsed box (line %d)", lineNum));

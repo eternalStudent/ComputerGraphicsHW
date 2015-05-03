@@ -23,9 +23,7 @@ class RayTracingWorker implements Runnable {
 
         Color pixelColor;
         int progress = 0;
-
         for (int i = bottomRow; i < topRow; i++) {
-
         	int temp = (i*60)/imageWidth;
 			if (temp>progress){
 				progress = temp;
