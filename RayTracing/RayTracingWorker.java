@@ -40,12 +40,12 @@ class RayTracingWorker implements Runnable {
     }
 
 
-    Color getPixelColor(int x, int y) {
+    private Color getPixelColor(int x, int y) {
 		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
 		return traceRay(ray, 0);
 	}
 
-	Color traceRay(Ray ray, int iteration) {
+	private Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(0.005));
 
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
@@ -94,7 +94,7 @@ class RayTracingWorker implements Runnable {
 				);
 	}
 
-	Hit getClosestHit(Ray ray) {
+	private Hit getClosestHit(Ray ray) {
 		Hit closestHit = null;
 		double minDist = Double.MAX_VALUE;
 
@@ -110,7 +110,7 @@ class RayTracingWorker implements Runnable {
 		return closestHit;
 	}
 	
-	double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
+	private double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		double sumExposure=0;
 		for (int i=0; i<grid.length; i++){
@@ -120,11 +120,11 @@ class RayTracingWorker implements Runnable {
 		return sumExposure/(double)grid.length;
 	}
 
-	Vector[] getLightGrid(Ray ray, Light light){
+	private Vector[] getLightGrid(Ray ray, Light light){
 		//construct rectangle
 		Plane plane = ray.getPerpendicularPlaneAtOrigion();
 		Vector edge1 = plane.getRandomDirection();
-		Vector edge2 = edge1.cross(plane.normal);
+		Vector edge2 = edge1.cross(plane.getNormalAtSurfacePoint(null));
 		Vector vertex = Vector.sum(ray.p0, edge1.toLength(-light.width/2), edge2.toLength(-light.width/2));
 
 		int shadowRaysNum = scene.settings.shadowRaysNum;
@@ -142,7 +142,7 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	double getExposureLevel(Ray shadowRay, Hit finalHit) {
+	private double getExposureLevel(Ray shadowRay, Hit finalHit) {
 		double exposure = 1;
 		for (Primitive primitive : scene.primitives) {
 			Hit hit = primitive.getHit(shadowRay);
@@ -155,7 +155,7 @@ class RayTracingWorker implements Runnable {
 		return exposure;
 	}
 	
-	Color getDiffuse(Hit hit, Ray shadowRay) {
+	private Color getDiffuse(Hit hit, Ray shadowRay) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 
 		if (cosOfAngle < 0)
@@ -163,7 +163,7 @@ class RayTracingWorker implements Runnable {
 		return hit.getDiffuseColor().scale(cosOfAngle);
 	}
 
-	Color getSpecular(Hit hit, Ray shadowRay, Light light, Ray ray){
+	private Color getSpecular(Hit hit, Ray shadowRay, Light light, Ray ray){
 		Vector reflection = shadowRay.dir.getReflectionAroundNormal(hit.normal);
 		Vector viewDirection = ray.dir.reverse();
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
@@ -174,7 +174,7 @@ class RayTracingWorker implements Runnable {
 	}
 
 
-	void paintPixel(byte[] rgbData, int x, int y, Color pixelColor) {
+	private void paintPixel(byte[] rgbData, int x, int y, Color pixelColor) {
 		rgbData[(y * this.imageWidth + x) * 3] = pixelColor.getRByte();
 		rgbData[(y * this.imageWidth + x) * 3 + 1] = pixelColor.getGByte();
 		rgbData[(y * this.imageWidth + x) * 3 + 2] = pixelColor.getBByte();

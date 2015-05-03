@@ -31,7 +31,7 @@ public class RayTracer {
 
 			RayTracer tracer = new RayTracer();
 
-                        // Default values:
+            // Default values:
 			tracer.imageWidth = 500;
 			tracer.imageHeight = 500;
 
@@ -41,12 +41,10 @@ public class RayTracer {
 			String sceneFileName = args[0];
 			String outputFileName = args[1];
 
-			if (args.length > 3)
-			{
+			if (args.length > 3){
 				tracer.imageWidth = Integer.parseInt(args[2]);
 				tracer.imageHeight = Integer.parseInt(args[3]);
 			}
-
 
 			// Parse scene file:
 			tracer.parseScene(sceneFileName);
@@ -54,8 +52,6 @@ public class RayTracer {
 			// Render scene:
 			tracer.renderScene(outputFileName);
 
-//		} catch (IOException e) {
-//			System.out.println(e.getMessage());
 		} catch (RayTracerException e) {
 			System.out.println(e.getMessage());
 		} catch (Exception e) {
@@ -84,12 +80,11 @@ public class RayTracer {
 			line = line.trim();
 			++lineNum;
 
-			if (line.isEmpty() || (line.charAt(0) == '#'))
-			{  // This line in the scene file is a comment
+			if (line.isEmpty() || (line.charAt(0) == '#')){
+				// This line in the scene file is a comment
 				continue;
 			}
-			else
-			{
+			else{
 				String code = line.substring(0, 3).toLowerCase();
 				// Split according to white space characters:
 				String[] params = line.substring(3).trim().toLowerCase().split("\\s+");
@@ -161,8 +156,19 @@ public class RayTracer {
 					System.out.println(String.format("Parsed plane (line %d)", lineNum));
 				}
 				else if (code.equals("box")){
-                                        // Add code here to parse box parameters
-
+					scene.primitives.add(new Primitive(new Box(
+		                Double.parseDouble(params[0]),
+		                Double.parseDouble(params[1]),
+		                Double.parseDouble(params[2]),
+		                Double.parseDouble(params[3]),
+		                Double.parseDouble(params[4]),
+		                Double.parseDouble(params[5]),
+		                Double.parseDouble(params[6]),
+		                Double.parseDouble(params[7]),
+		                Double.parseDouble(params[8])),
+		                scene.materials.get(Integer.parseInt(params[9]) - 1))
+		            );
+					
 					System.out.println(String.format("Parsed box (line %d)", lineNum));
 				}
 				else if (code.equals("lgt")){
@@ -180,8 +186,7 @@ public class RayTracer {
 
 					System.out.println(String.format("Parsed light (line %d)", lineNum));
 				}
-				else
-				{
+				else{
 					System.out.println(String.format("ERROR: Did not recognize object: %s (line %d)", code, lineNum));
 				}
 			}
@@ -190,6 +195,8 @@ public class RayTracer {
 
                 // It is recommended that you check here that the scene is valid,
                 // for example camera settings and all necessary materials were defined.
+		if (scene.camera == null)
+			throw new RayTracerException("camera is undefined");
 
 		System.out.println("Finished parsing scene file " + sceneFileName);
 

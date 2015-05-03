@@ -2,6 +2,7 @@ package RayTracing;
 
 public class Vector {
 	static final Vector ZERO = new Vector(0, 0, 0);
+	static final boolean DEGREES = true;
 	final double x;
 	final double y;
 	final double z;
@@ -108,7 +109,7 @@ public class Vector {
 	}
 
 	Vector projectOntoPlane(Plane plane) {
-		return subtract(projectOntoVector(plane.normal));
+		return subtract(projectOntoVector(plane.getNormalAtSurfacePoint(null)));
 	}
 
 	Vector projectOntoVector(Vector other) {
@@ -130,6 +131,34 @@ public class Vector {
 
 	Plane getPerpendicularPlaneAtPoint(Vector point){
 		return new Plane(this, dot(point));
+	}
+	
+	private Vector rotateAroundX(double t){
+		if (DEGREES)
+			t = (t*Math.PI)/180;
+		double cost = Math.cos(t);
+		double sint = Math.sin(t);
+		return new Vector(x, cost*y-sint*z, sint*y+cost*z);
+	}
+	
+	private Vector rotateAroundY(double t){
+		if (DEGREES)
+			t = (t*Math.PI)/180;
+		double cost = Math.cos(t);
+		double sint = Math.sin(t);
+		return new Vector(cost*x+sint*z, y, -sint*x+cost*z);
+	}
+	
+	private Vector rotateAroundZ(double t){
+		if (DEGREES)
+			t = (t*Math.PI)/180;
+		double cost = Math.cos(t);
+		double sint = Math.sin(t);
+		return new Vector(cost*x-sint*y, sint*x+cost*y, z);
+	}
+	
+	Vector rotate(Vector r){
+		return rotateAroundX(r.x).rotateAroundY(r.y).rotateAroundZ(r.z);
 	}
 
 }

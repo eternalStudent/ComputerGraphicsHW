@@ -3,8 +3,8 @@ package RayTracing;
 import java.util.Random;
 
 public class Plane extends Shape3D{
-	final Vector normal;
-	final double offset;
+	private final Vector normal;
+	private final double offset;
 
 	Plane(double nx, double ny, double nz, double offset) {
 		normal = (new Vector(nx, ny, nz));
@@ -17,7 +17,7 @@ public class Plane extends Shape3D{
 	}
 
 	@Override
-	double getHit(Ray ray) {
+	double getHitDistance(Ray ray) {
 		double cosOfAngle = ray.dir.getCosOfAngle(normal);
 
 		if (Math.abs(cosOfAngle) < 0.005) {

@@ -1,15 +1,15 @@
 package RayTracing;
 
 public class Sphere extends Shape3D {
-	final Vector center;
-	final float radius;
+	private final Vector center;
+	private final float radius;
 
 	Sphere(float x, float y, float z, float radius) {
 		center = new Vector(x, y, z);
 		this.radius = radius;
 	}
 
-	public double getHit(Ray ray) {
+	public double getHitDistance(Ray ray) {
 	    double b = ray.p0.subtract(center).dot(ray.dir);
 	    double c = center.distSquared(ray.p0) - radius*radius;
 

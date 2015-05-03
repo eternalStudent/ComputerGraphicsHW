@@ -11,7 +11,7 @@ public class Primitive {
 	}
 	
 	public Hit getHit(Ray ray){
-		double dist = shape.getHit(ray);
+		double dist = shape.getHitDistance(ray);
 		if (dist == -1)
 			return null;
 		return new Hit(this, dist, ray);
