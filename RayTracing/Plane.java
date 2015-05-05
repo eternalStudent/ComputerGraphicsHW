@@ -12,7 +12,7 @@ public class Plane extends Shape3D{
 	}
 
 	Plane(Vector normal, double offset) {
-		this.normal = normal.normalize();
+		this.normal = normal;
 		this.offset = offset;
 	}
 

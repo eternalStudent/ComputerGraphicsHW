@@ -1,5 +1,8 @@
 package RayTracing;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
@@ -143,15 +146,25 @@ class RayTracingWorker implements Runnable {
 
 	private double getExposureLevel(Ray shadowRay, Hit finalHit) {
 		double exposure = 1;
+		List<Hit> hits = getOrderedHits(shadowRay);
+		for (Hit hit: hits) {
+			if (hit.primitive == finalHit.primitive || exposure == 0)
+				break;
+			exposure *= hit.getTransparency();
+		}
+		return exposure;
+	}
+	
+	private List<Hit> getOrderedHits(Ray shadowRay){
+		List<Hit> hits = new ArrayList<Hit>();
 		for (Primitive primitive : scene.primitives) {
 			Hit hit = primitive.getHit(shadowRay);
 			if (hit != null){
-				if (hit.primitive == finalHit.primitive)
-					break;
-				exposure *= hit.getTransparency();
+				hits.add(hit);
 			}	
 		}
-		return exposure;
+		Collections.sort(hits);
+		return hits;
 	}
 	
 	private Color getDiffuse(Hit hit, Ray shadowRay) {

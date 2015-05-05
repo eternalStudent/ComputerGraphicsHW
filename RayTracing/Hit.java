@@ -1,6 +1,6 @@
 package RayTracing;
 
-public class Hit{
+public class Hit implements Comparable<Hit>{
 	final double dist;
 	final Primitive primitive;
 	final Vector normal;
@@ -32,6 +32,11 @@ public class Hit{
 
 	float getTransparency() {
 		return primitive.material.trans;
+	}
+
+	@Override
+	public int compareTo(Hit other) {
+		return Double.compare(dist, other.dist);
 	}
 
 }
