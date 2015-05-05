@@ -28,7 +28,7 @@ public class Camera {
 
 		//constructing screenNormal & screenPlane
 		Vector lookAt = new Vector(lx, ly, lz);
-		screenNormal = lookAt.subtract(position);
+		screenNormal = lookAt.subtract(position).normalize();
 		Vector screenCenter = position.add(screenNormal.toLength(screenDistance));
 		Plane screenPlane = screenNormal.getPerpendicularPlaneAtPoint(screenCenter);
 
