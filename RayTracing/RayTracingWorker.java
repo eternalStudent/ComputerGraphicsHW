@@ -60,7 +60,7 @@ class RayTracingWorker implements Runnable {
 				light.position,
 				closestHit.intersection);
 
-			double illumination = getIlluminationLevel(shadowRay, light, closestHit);
+			double illumination = getIlluminationLevel(shadowRay, light, closestHit.intersection);
 			double occlusion = 1 - illumination;
 			double lightIntensity = 1-light.shadow;
 			Color lightColor = light.color;
@@ -112,12 +112,12 @@ class RayTracingWorker implements Runnable {
 		return closestHit;
 	}
 	
-	private double getIlluminationLevel(Ray shadowRay, Light light, Hit hit){
+	private double getIlluminationLevel(Ray shadowRay, Light light, Vector intersection){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		double sumExposure=0;
 		for (int i=0; i<grid.length; i++){
-			Ray ray = Ray.createRayByTwoPoints(grid[i], hit.intersection);
-			sumExposure += getExposureLevel(ray, hit);
+			Ray ray = Ray.createRayByTwoPoints(grid[i], intersection);
+			sumExposure += getExposureLevel(ray, intersection);
 		}
 		return sumExposure/(double)grid.length;
 	}
@@ -144,11 +144,11 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	private double getExposureLevel(Ray shadowRay, Hit finalHit) {
+	private double getExposureLevel(Ray shadowRay, Vector intersection) {
 		double exposure = 1;
 		List<Hit> hits = getOrderedHits(shadowRay);
 		for (Hit hit: hits) {
-			if (hit.primitive == finalHit.primitive || exposure == 0)
+			if (hit.dist*hit.dist > intersection.distSquared(shadowRay.p0)-EPSILON || exposure == 0)
 				break;
 			exposure *= hit.getTransparency();
 		}
