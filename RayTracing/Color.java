@@ -7,6 +7,9 @@ public class Color {
 		rgb = new Vector(Math.min(1, r), Math.min(1, g), Math.min(1, b));
 	}
 
+	Color(Vector rgb) {
+		this.rgb = rgb;
+	}
 	Color add(Color other) {
 		Vector tmp = rgb.add(other.rgb);
 

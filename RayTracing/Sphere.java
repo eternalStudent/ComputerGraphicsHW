@@ -2,9 +2,9 @@ package RayTracing;
 
 public class Sphere extends Shape3D {
 	private final Vector center;
-	private final float radius;
+	private final double radius;
 
-	Sphere(float x, float y, float z, float radius) {
+	Sphere(double x, double y, double z, double radius) {
 		center = new Vector(x, y, z);
 		this.radius = radius;
 	}

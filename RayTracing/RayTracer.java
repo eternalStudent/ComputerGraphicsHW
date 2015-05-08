@@ -90,15 +90,15 @@ public class RayTracer {
 				String[] params = line.substring(3).trim().toLowerCase().split("\\s+");
 				if (code.equals("cam")){
                     scene.camera = new Camera(
-                    	Float.parseFloat(params[0]),
-						Float.parseFloat(params[1]),
-						Float.parseFloat(params[2]),
-						Float.parseFloat(params[3]),
-						Float.parseFloat(params[4]),
-						Float.parseFloat(params[5]),
-						Float.parseFloat(params[6]),
-						Float.parseFloat(params[7]),
-						Float.parseFloat(params[8]),
+                    	Double.parseDouble(params[0]),
+						Double.parseDouble(params[1]),
+						Double.parseDouble(params[2]),
+						Double.parseDouble(params[3]),
+						Double.parseDouble(params[4]),
+						Double.parseDouble(params[5]),
+						Double.parseDouble(params[6]),
+						Double.parseDouble(params[7]),
+						Double.parseDouble(params[8]),
 						Double.parseDouble(params[9]),
 						Double.parseDouble(params[10]),
 						imageWidth, imageHeight);
@@ -127,18 +127,18 @@ public class RayTracer {
 						Double.parseDouble(params[6]),
 						Double.parseDouble(params[7]),
 						Double.parseDouble(params[8]),
-						Float.parseFloat(params[9]),
-						Float.parseFloat(params[10]))
+						Double.parseDouble(params[9]),
+						Double.parseDouble(params[10]))
 					);
 
 					System.out.println(String.format("Parsed material (line %d)", lineNum));
 				}
 				else if (code.equals("sph")){
 	                scene.primitives.add(new Primitive(new Sphere(
-	                	Float.parseFloat(params[0]),
-	                	Float.parseFloat(params[1]),
-		                Float.parseFloat(params[2]),
-		                Float.parseFloat(params[3])),
+	                	Double.parseDouble(params[0]),
+	                	Double.parseDouble(params[1]),
+		                Double.parseDouble(params[2]),
+		                Double.parseDouble(params[3])),
 		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 

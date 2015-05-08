@@ -11,14 +11,14 @@ class RayTracingWorker implements Runnable {
 	private int bottomRow;
 	private byte[] rgbData;
 	private int topRow;
+	private static boolean ANTI_ALIASING = true;
 
-    RayTracingWorker(int bottomRow, int topRow, int imageWidth, Scene scene,
-            byte[] rgbData) {
-    	this.bottomRow = bottomRow;
-        this.topRow = topRow;
-    	this.scene = scene;
+    RayTracingWorker(int bottomRow, int topRow, int imageWidth, Scene scene, byte[] rgbData) {
+    	this.bottomRow  = bottomRow;
+        this.topRow     = topRow;
+    	this.scene      = scene;
         this.imageWidth = imageWidth;
-        this.rgbData = rgbData;
+        this.rgbData    = rgbData;
     }
 
     @Override
@@ -40,10 +40,30 @@ class RayTracingWorker implements Runnable {
         }
     }
 
-
     private Color getPixelColor(int x, int y) {
-		Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
-		return traceRay(ray, 0);
+		if (!RayTracingWorker.ANTI_ALIASING) {
+			Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
+			return traceRay(ray, 0);
+		}
+		else {
+			int multiplier = 2;
+			Random r = new Random();
+			Color[] colors = new Color[multiplier];
+
+			for (int i = 0; i < multiplier; i++) {
+				double randX = x + r.nextDouble();
+				double randY = y + r.nextDouble();
+				Ray ray = scene.camera.getRayByPixelCoordinate(randX, randY);
+				colors[i] = traceRay(ray, 0);
+			}
+			Vector result = Vector.ZERO;
+
+			for (int j = 0; j < multiplier; j++) {
+				result = result.add(colors[j].rgb);
+			}
+
+			return new Color(result.scale(1 /(double) multiplier));
+		}
 	}
 
 	private Color traceRay(Ray ray, int iteration) {
@@ -60,11 +80,12 @@ class RayTracingWorker implements Runnable {
 				closestHit.intersection);
 
 			double illumination = getIlluminationLevel(shadowRay, light, closestHit.intersection);
-			double occlusion = 1 - illumination;
+			double occlusion    = 1 - illumination;
 			double lightIntensity = 1-light.shadow;
+
 			Color lightColor = light.color;
-			Color diffuse = getDiffuse(closestHit, shadowRay);
-			Color specular = getSpecular(closestHit, shadowRay, light, ray);
+			Color diffuse    = getDiffuse(closestHit, shadowRay);
+			Color specular   = getSpecular(closestHit, shadowRay, light, ray);
 
 			baseColor = baseColor.add(diffuse.add(specular).
 					multiply(lightColor).

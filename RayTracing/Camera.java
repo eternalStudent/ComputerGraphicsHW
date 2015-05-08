@@ -15,9 +15,9 @@ public class Camera {
 	private final Vector walkingDistance;
 
 	Camera(
-		float px, float py, float pz,
-		float lx, float ly, float lz,
-		float ux, float uy, float uz,
+		double px, double py, double pz,
+		double lx, double ly, double lz,
+		double ux, double uy, double uz,
 		double screenDistance, double screenWidth,
 		int imageWidth, int imageHeight) {
 
@@ -41,7 +41,7 @@ public class Camera {
 		walkingDistance = screenNormal.toLength(screenDistance);
 	}
 
-	public Ray getRayByPixelCoordinate(int x, int y) {
+	public Ray getRayByPixelCoordinate(double x, double y) {
 		// Alpha and Beta are normalized to the range -1 to 1
 		double alpha = (2*x - imageWidth) / (double) imageWidth;
 		double beta = (2*y - imageHeight) / (double) imageHeight;
