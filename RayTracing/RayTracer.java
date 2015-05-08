@@ -20,7 +20,7 @@ public class RayTracer {
 
 	public int imageWidth;
 	public int imageHeight;
-
+	public static final double EPSILON = 5e-10;
 	public Scene scene;
 	/**
 	 * Runs the ray tracer. Takes scene file, output image file and image size as input.
@@ -168,7 +168,7 @@ public class RayTracer {
 		                Double.parseDouble(params[8])),
 		                scene.materials.get(0))
 		            );
-					
+
 					System.out.println(String.format("Parsed box (line %d)", lineNum));
 				}
 				else if (code.equals("lgt")){
@@ -209,12 +209,12 @@ public class RayTracer {
 		long startTime = System.currentTimeMillis();
 
 		byte[] rgbData = new byte[this.imageWidth * this.imageHeight * 3];
-		
+
 		int numOfThreads = 4;
 		RayTracingWorker[] workers = new RayTracingWorker[numOfThreads];
 		int hPixels = imageHeight / numOfThreads;
 		ExecutorService es = Executors.newCachedThreadPool();
-		
+
 		System.out.print("Rendering");
 		for (int i = 0; i < numOfThreads - 1; i++) {
 			workers[i] = new RayTracingWorker(i*hPixels, (i+1)*hPixels, imageWidth, scene, rgbData);
@@ -228,7 +228,7 @@ public class RayTracer {
 				( numOfThreads*hPixels + (imageHeight % numOfThreads) ),
 				imageWidth, scene, rgbData);
 		es.execute(workers[numOfThreads-1]);
-		
+
 		es.shutdown();
 
 		try {
@@ -236,7 +236,7 @@ public class RayTracer {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		System.out.println();
 		long endTime = System.currentTimeMillis();
 		Long renderTime = endTime - startTime;

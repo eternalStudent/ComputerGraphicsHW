@@ -100,8 +100,9 @@ public class Vector {
 		if (!(o instanceof Vector))
 			return false;
 		Vector other = (Vector) o;
-		double epsilon = 1.0/1024.0;
-		return ( Math.abs(x-other.x)<epsilon && Math.abs(y-other.y)<epsilon && Math.abs(z-other.z)<epsilon );
+		return ( Math.abs(x-other.x)<RayTracer.EPSILON
+			  && Math.abs(y-other.y)<RayTracer.EPSILON
+			  && Math.abs(z-other.z)<RayTracer.EPSILON);
 	}
 
 	@Override
@@ -123,7 +124,7 @@ public class Vector {
 
 	Vector getReflectionAroundNormal(Vector normal) {
 		normal = normal.normalize();
-		return subtract(normal.scale(2*dot(normal))).normalize();
+		return subtract(normal.scale(2*dot(normal)));
 	}
 
 	double getCosOfAngle(Vector other) {
@@ -133,7 +134,7 @@ public class Vector {
 	Plane getPerpendicularPlaneAtPoint(Vector point){
 		return new Plane(this, dot(point));
 	}
-	
+
 	private Vector rotateAroundX(double t){
 		if (DEGREES)
 			t = (t*Math.PI)/180;
@@ -141,7 +142,7 @@ public class Vector {
 		double sint = Math.sin(t);
 		return new Vector(x, cost*y-sint*z, sint*y+cost*z);
 	}
-	
+
 	private Vector rotateAroundY(double t){
 		if (DEGREES)
 			t = (t*Math.PI)/180;
@@ -149,7 +150,7 @@ public class Vector {
 		double sint = Math.sin(t);
 		return new Vector(cost*x+sint*z, y, -sint*x+cost*z);
 	}
-	
+
 	private Vector rotateAroundZ(double t){
 		if (DEGREES)
 			t = (t*Math.PI)/180;
@@ -157,7 +158,7 @@ public class Vector {
 		double sint = Math.sin(t);
 		return new Vector(cost*x-sint*y, sint*x+cost*y, z);
 	}
-	
+
 	Vector rotate(Vector r){
 		return rotateAroundX(r.x).rotateAroundY(r.y).rotateAroundZ(r.z);
 	}

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
-	static final double EPSILON = 1.0/1024.0;
     private Scene scene;
     private int imageWidth;
 	private int bottomRow;
@@ -48,7 +47,7 @@ class RayTracingWorker implements Runnable {
 	}
 
 	private Color traceRay(Ray ray, int iteration) {
-		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(EPSILON));
+		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(RayTracer.EPSILON));
 
 		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
 			return scene.settings.background;
@@ -71,15 +70,15 @@ class RayTracingWorker implements Runnable {
 					multiply(lightColor).
 					scale(illumination+occlusion*lightIntensity));
 		}
-		
+
 		//reflection
 		Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
 		Color reflectionColor = Color.BLACK;
 		if (!closestHit.getReflectColor().equals(Color.BLACK)){
-			Ray reflectionRay = new Ray(closestHit.intersection, reflection);					
+			Ray reflectionRay = new Ray(closestHit.intersection, reflection);
 			reflectionColor = closestHit.getReflectColor().multiply(traceRay(reflectionRay, iteration + 1));
 		}
-		
+
 		//transparency
 		Color transparencyColor = Color.BLACK;
 		float transparency = closestHit.getTransparency();
@@ -88,10 +87,10 @@ class RayTracingWorker implements Runnable {
 			Ray transRay = new Ray(closestHit.intersection, ray.dir);
 			transparencyColor = traceRay(transRay, iteration + 1);
 		}
-		
+
 		return Color.sum(
-				transparencyColor.scale(transparency), 
-				baseColor.scale(opacity), 
+				transparencyColor.scale(transparency),
+				baseColor.scale(opacity),
 				reflectionColor
 				);
 	}
@@ -104,14 +103,14 @@ class RayTracingWorker implements Runnable {
 			Hit hit = primitive.getHit(ray);
 
 			if (hit != null && hit.dist < minDist) {
-					closestHit = hit;
-					minDist = hit.dist;
+				closestHit = hit;
+				minDist = hit.dist;
 			}
 		}
 
 		return closestHit;
 	}
-	
+
 	private double getIlluminationLevel(Ray shadowRay, Light light, Vector intersection){
 		Vector[] grid = getLightGrid(shadowRay, light);
 		double sumExposure=0;
@@ -148,25 +147,25 @@ class RayTracingWorker implements Runnable {
 		double exposure = 1;
 		List<Hit> hits = getOrderedHits(shadowRay);
 		for (Hit hit: hits) {
-			if (hit.dist*hit.dist > intersection.distSquared(shadowRay.p0)-EPSILON || exposure == 0)
+			if (hit.dist*hit.dist > intersection.distSquared(shadowRay.p0)-RayTracer.EPSILON || exposure == 0)
 				break;
 			exposure *= hit.getTransparency();
 		}
 		return exposure;
 	}
-	
+
 	private List<Hit> getOrderedHits(Ray shadowRay){
 		List<Hit> hits = new ArrayList<Hit>();
 		for (Primitive primitive : scene.primitives) {
 			Hit hit = primitive.getHit(shadowRay);
 			if (hit != null){
 				hits.add(hit);
-			}	
+			}
 		}
 		Collections.sort(hits);
 		return hits;
 	}
-	
+
 	private Color getDiffuse(Hit hit, Ray shadowRay) {
 		double cosOfAngle = hit.normal.getCosOfAngle(shadowRay.dir.reverse());
 
@@ -180,7 +179,7 @@ class RayTracingWorker implements Runnable {
 		Vector viewDirection = ray.dir.reverse();
 		double cosOfAngle = viewDirection.getCosOfAngle(reflection);
 
-		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK))
+		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK) || getExposureLevel(shadowRay, hit.intersection) < 1)
 			return Color.BLACK;
 		return hit.getSpecularColor().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
 	}

@@ -20,7 +20,7 @@ public class Plane extends Shape3D{
 	double getHitDistance(Ray ray) {
 		double cosOfAngle = ray.dir.getCosOfAngle(normal);
 
-		if (Math.abs(cosOfAngle) < 0.005) {
+		if (Math.abs(cosOfAngle) < RayTracer.EPSILON) {
 			return -1;
 		}
 
