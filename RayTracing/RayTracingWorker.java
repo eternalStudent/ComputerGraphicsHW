@@ -6,43 +6,37 @@ import java.util.List;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
-    private Scene scene;
-    private int imageWidth;
-	private int bottomRow;
-	private byte[] rgbData;
-	private int topRow;
-	private static boolean ANTI_ALIASING = true;
+	private static boolean ANTI_ALIASING = false;
+    private final RayTracer tracer; 
+    private final int bottomRow;
+	private final int topRow;
 
-    RayTracingWorker(int bottomRow, int topRow, int imageWidth, Scene scene, byte[] rgbData) {
+    RayTracingWorker(int bottomRow, int topRow, RayTracer tracer) {
+    	this.tracer     = tracer;
     	this.bottomRow  = bottomRow;
         this.topRow     = topRow;
-    	this.scene      = scene;
-        this.imageWidth = imageWidth;
-        this.rgbData    = rgbData;
     }
 
     @Override
     public void run() {
-
-        Color pixelColor;
         int progress = 0;
         for (int i = bottomRow; i < topRow; i++) {
-        	int temp = (i*60)/imageWidth;
+        	int temp = (i*60)/tracer.imageWidth;
 			if (temp>progress){
 				progress = temp;
 				System.out.print('.');
 			}
 
-        	for (int j = 0; j < imageWidth; j++) {
-                pixelColor = getPixelColor(i, j);
-                paintPixel(rgbData, i, j, pixelColor);
+        	for (int j = 0; j < tracer.imageWidth; j++) {
+                Color pixelColor = getPixelColor(i, j);
+                tracer.paintPixel(i, j, pixelColor);
             }
         }
     }
 
     private Color getPixelColor(int x, int y) {
 		if (!RayTracingWorker.ANTI_ALIASING) {
-			Ray ray = scene.camera.getRayByPixelCoordinate(x, y);
+			Ray ray = tracer.getCamera().getRayByPixelCoordinate(x, y);
 			return traceRay(ray, 0);
 		}
 		else {
@@ -53,7 +47,7 @@ class RayTracingWorker implements Runnable {
 			for (int i = 0; i < multiplier; i++) {
 				double randX = x + r.nextDouble();
 				double randY = y + r.nextDouble();
-				Ray ray = scene.camera.getRayByPixelCoordinate(randX, randY);
+				Ray ray = tracer.getCamera().getRayByPixelCoordinate(randX, randY);
 				colors[i] = traceRay(ray, 0);
 			}
 			Vector result = Vector.ZERO;
@@ -69,12 +63,12 @@ class RayTracingWorker implements Runnable {
 	private Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(RayTracer.EPSILON));
 
-		if (closestHit == null || iteration == scene.settings.maxRecursionLevel) {
-			return scene.settings.background;
+		if (closestHit == null || iteration == tracer.getSettings().maxRecursionLevel) {
+			return tracer.getSettings().background;
 		}
 
 		Color baseColor = Color.BLACK;
-		for (Light light : scene.lights) {
+		for (Light light : tracer.scene.lights) {
 			Ray shadowRay = Ray.createRayByTwoPoints(
 				light.position,
 				closestHit.intersection);
@@ -102,8 +96,8 @@ class RayTracingWorker implements Runnable {
 
 		//transparency
 		Color transparencyColor = Color.BLACK;
-		float transparency = closestHit.getTransparency();
-		float opacity = 1-transparency;
+		double transparency = closestHit.getTransparency();
+		double opacity = 1-transparency;
 		if (transparency != 0) {
 			Ray transRay = new Ray(closestHit.intersection, ray.dir);
 			transparencyColor = traceRay(transRay, iteration + 1);
@@ -120,7 +114,7 @@ class RayTracingWorker implements Runnable {
 		Hit closestHit = null;
 		double minDist = Double.MAX_VALUE;
 
-		for (Primitive primitive : scene.primitives) {
+		for (Primitive primitive : tracer.scene.primitives) {
 			Hit hit = primitive.getHit(ray);
 
 			if (hit != null && hit.dist < minDist) {
@@ -149,7 +143,7 @@ class RayTracingWorker implements Runnable {
 		Vector edge2 = edge1.cross(plane.getNormalAtSurfacePoint(null));
 		Vector vertex = Vector.sum(ray.p0, edge1.toLength(-light.width/2), edge2.toLength(-light.width/2));
 
-		int shadowRaysNum = scene.settings.shadowRaysNum;
+		int shadowRaysNum = tracer.getSettings().shadowRaysNum;
 		Vector[] grid = new Vector[shadowRaysNum*shadowRaysNum];
 		double tileWidth = light.width/shadowRaysNum;
 		Random r = new Random();
@@ -177,7 +171,7 @@ class RayTracingWorker implements Runnable {
 
 	private List<Hit> getOrderedHits(Ray shadowRay){
 		List<Hit> hits = new ArrayList<Hit>();
-		for (Primitive primitive : scene.primitives) {
+		for (Primitive primitive : tracer.scene.primitives) {
 			Hit hit = primitive.getHit(shadowRay);
 			if (hit != null){
 				hits.add(hit);
@@ -203,13 +197,6 @@ class RayTracingWorker implements Runnable {
 		if (cosOfAngle < 0 || hit.getSpecularColor().equals(Color.BLACK) || getExposureLevel(shadowRay, hit.intersection) < 1)
 			return Color.BLACK;
 		return hit.getSpecularColor().scale(light.spec * Math.pow(cosOfAngle, hit.getPhong()));
-	}
-
-
-	private void paintPixel(byte[] rgbData, int x, int y, Color pixelColor) {
-		rgbData[(y * this.imageWidth + x) * 3] = pixelColor.getRByte();
-		rgbData[(y * this.imageWidth + x) * 3 + 1] = pixelColor.getGByte();
-		rgbData[(y * this.imageWidth + x) * 3 + 2] = pixelColor.getBByte();
 	}
 
 }

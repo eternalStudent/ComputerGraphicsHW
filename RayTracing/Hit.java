@@ -22,7 +22,7 @@ public class Hit implements Comparable<Hit>{
 		return primitive.material.specular;
 	}
 
-	float getPhong() {
+	double getPhong() {
 		return primitive.material.phong;
 	}
 
@@ -30,7 +30,7 @@ public class Hit implements Comparable<Hit>{
 		return primitive.material.reflection;
 	}
 
-	float getTransparency() {
+	double getTransparency() {
 		return primitive.material.trans;
 	}
 
