@@ -25,10 +25,6 @@ public class Vector {
 		return new Vector(x + other.x, y + other.y, z + other.z);
 	}
 
-	static Vector add(Vector v1, Vector v2) {
-		return v1.add(v2);
-	}
-
 	static Vector sum(Vector... vectors) {
 		double x = 0.0;
 		double y = 0.0;
@@ -47,16 +43,8 @@ public class Vector {
 		return new Vector(x - other.x, y - other.y, z - other.z);
 	}
 
-	static Vector subtract(Vector v1, Vector v2) {
-		return v1.subtract(v2);
-	}
-
 	double dot(Vector other) {
 		return (x*other.x + y*other.y + z*other.z);
-	}
-
-	static double dot(Vector v1, Vector v2) {
-		return v1.dot(v2);
 	}
 
 	Vector cross(Vector other) {
@@ -65,10 +53,6 @@ public class Vector {
 			z*other.x - x*other.z,
 			x*other.y - y*other.x
 			);
-	}
-
-	static Vector cross(Vector v1, Vector v2) {
-		return v1.cross(v2);
 	}
 
 	double normSquared() {
@@ -85,10 +69,6 @@ public class Vector {
 
 	Vector toLength(double length) {
 		return scale(length / norm());
-	}
-
-	boolean isNormalized() {
-		return normSquared() == 1;
 	}
 
 	Vector normalize(){

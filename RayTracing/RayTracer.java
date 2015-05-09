@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 
 /**
@@ -22,12 +22,15 @@ public class RayTracer {
 	final int imageWidth;
 	final int imageHeight;
 	final Scene scene;
+	public AtomicInteger curPixel;
+	public int progress = 0;
 	private final BufferedImage image;
 
 	public RayTracer(Scene scene, int width, int height){
 		this.scene = scene;
 		this.imageWidth = width;
 		this.imageHeight = height;
+		this.curPixel = new AtomicInteger();
 		image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 		renderScene();
 	}
@@ -217,33 +220,26 @@ public class RayTracer {
 /**
   * Renders the loaded scene and saves it to the specified file location.
   */
-	public void  renderScene(){
+
+	public void renderScene() {
 		long startTime = System.currentTimeMillis();
 
 		int numOfThreads = 4;
 		RayTracingWorker[] workers = new RayTracingWorker[numOfThreads];
-		int hPixels = imageHeight / numOfThreads;
+
 		ExecutorService es = Executors.newCachedThreadPool();
 
 		System.out.print("Rendering");
-		for (int i = 0; i < numOfThreads - 1; i++) {
-			workers[i] = new RayTracingWorker(i*hPixels, (i+1)*hPixels, this);
+		for (int i = 0; i < numOfThreads; i++) {
+			workers[i] = new RayTracingWorker(this);
 			es.execute(workers[i]);
 		}
-
-		// In case N doesn't divide imageHeight, the last thread gets to do the additional
-		// remainder.
-		workers[numOfThreads-1] = new RayTracingWorker(
-				(numOfThreads-1)*hPixels,
-				( numOfThreads*hPixels + (imageHeight % numOfThreads) ),
-				this);
-		es.execute(workers[numOfThreads-1]);
-
 		es.shutdown();
 
 		try {
 			es.awaitTermination(10, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -252,7 +248,7 @@ public class RayTracer {
 		Long renderTime = endTime - startTime;
 		System.out.println("Finished rendering scene in " + renderTime.toString() + " milliseconds.");
 	}
-	
+
 	public Camera getCamera(){
 		return scene.camera;
 	}

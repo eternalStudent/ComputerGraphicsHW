@@ -34,7 +34,7 @@ public class UserInterface implements ActionListener{
 		
 		if (cmd.equals("Open")){
 			chooser.setDialogTitle("Open Scene File");
-			if (chooser.showSaveDialog(view.getContentPane()) == JFileChooser.APPROVE_OPTION) {
+			if (chooser.showOpenDialog(view.getContentPane()) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
                 view.setTitle(file.getName());
                 try {

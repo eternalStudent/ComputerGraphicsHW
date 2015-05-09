@@ -7,33 +7,17 @@ public class Color {
 		rgb = new Vector(Math.min(1, r), Math.min(1, g), Math.min(1, b));
 	}
 
-	Color(Vector rgb) {
-		this.rgb = rgb;
-	}
 	Color add(Color other) {
 		Vector tmp = rgb.add(other.rgb);
 
 		return new Color(tmp.x, tmp.y, tmp.z);
 	}
 
-	double getR() {
-		return rgb.x;
-	}
-	byte getRByte() {
-		return (byte) Math.round(255*rgb.x);
-	}
+	double getR() { return rgb.x; }
 	double getG() {
 		return rgb.y;
 	}
-	byte getGByte() {
-		return (byte) Math.round(255*rgb.y);
-	}
-	double getB() {
-		return rgb.z;
-	}
-	byte getBByte() {
-		return (byte) Math.round(255*rgb.z);
-	}
+	double getB() { return rgb.z; }
 
 	Color multiply(Color other) {
 		Vector product = rgb.pointwiseMultiply(other.rgb);

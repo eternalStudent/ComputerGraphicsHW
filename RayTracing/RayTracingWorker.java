@@ -7,31 +7,34 @@ import java.util.Random;
 
 class RayTracingWorker implements Runnable {
 	private static boolean ANTI_ALIASING = false;
-    private final RayTracer tracer; 
-    private final int bottomRow;
-	private final int topRow;
+    private final RayTracer tracer;
 
-    RayTracingWorker(int bottomRow, int topRow, RayTracer tracer) {
+    RayTracingWorker(RayTracer tracer) {
     	this.tracer     = tracer;
-    	this.bottomRow  = bottomRow;
-        this.topRow     = topRow;
     }
 
     @Override
     public void run() {
-        int progress = 0;
-        for (int i = bottomRow; i < topRow; i++) {
-        	int temp = (i*60)/tracer.imageWidth;
-			if (temp>progress){
-				progress = temp;
+		int totalImagePixels = tracer.imageWidth * tracer.imageHeight;
+
+		while (true) {
+			int pixel = tracer.curPixel.getAndIncrement();
+
+			if ( (pixel * 60) / totalImagePixels > tracer.progress) {
+				tracer.progress++;
 				System.out.print('.');
 			}
 
-        	for (int j = 0; j < tracer.imageWidth; j++) {
-                Color pixelColor = getPixelColor(i, j);
-                tracer.paintPixel(i, j, pixelColor);
-            }
-        }
+			if (pixel >= totalImagePixels) {
+				return;
+			}
+
+			int x = pixel / tracer.imageWidth;
+			int y = pixel % tracer.imageWidth;
+
+			Color color = getPixelColor(x, y);
+			tracer.paintPixel(x, y, color);
+		}
     }
 
     private Color getPixelColor(int x, int y) {
@@ -40,7 +43,7 @@ class RayTracingWorker implements Runnable {
 			return traceRay(ray, 0);
 		}
 		else {
-			int multiplier = 2;
+			int multiplier = 8;
 			Random r = new Random();
 			double red = 0;
 			double green = 0;
