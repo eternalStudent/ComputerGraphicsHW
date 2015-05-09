@@ -2,9 +2,9 @@ package RayTracing;
 
 public class Box extends Shape3D {
 
-	final double x0, y0, z0, x1, y1, z1;
-	final Vector position;
-	final Vector rotation;
+	private final double x0, y0, z0, x1, y1, z1;
+	private final Vector position;
+	private final Vector rotation;
 
 	public Box(double px, double py, double pz,
 			double sx, double sy, double sz,

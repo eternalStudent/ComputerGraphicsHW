@@ -25,6 +25,8 @@ class RayTracingWorker implements Runnable {
 				return;
 			}
 
+			x = tracer.shuffledArray.get(x);
+
 			for (int y = 0; y < imageHeight; y++) {
 				Color color = getPixelColor(x, y);
 				tracer.paintPixel(x, y, color);
@@ -53,13 +55,13 @@ class RayTracingWorker implements Runnable {
 				double randY = y + r.nextDouble();
 				Ray ray = tracer.getCamera().getRayByPixelCoordinate(randX, randY);
 				Color color = traceRay(ray, 0);
-				red += color.getR();
+				red   += color.getR();
 				green += color.getG();
-				blue += color.getB();
+				blue  += color.getB();
 			}
-			red /= multiplier;
+			red   /= multiplier;
 			green /= multiplier;
-			blue /= multiplier;
+			blue  /= multiplier;
 
 			return new Color(red, green, blue);
 		}
@@ -92,9 +94,9 @@ class RayTracingWorker implements Runnable {
 		}
 
 		//reflection
-		Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
 		Color reflectionColor = Color.BLACK;
 		if (!closestHit.getReflectColor().equals(Color.BLACK)){
+			Vector reflection = ray.dir.getReflectionAroundNormal(closestHit.normal);
 			Ray reflectionRay = new Ray(closestHit.intersection, reflection);
 			reflectionColor = closestHit.getReflectColor().multiply(traceRay(reflectionRay, iteration + 1));
 		}
@@ -111,8 +113,7 @@ class RayTracingWorker implements Runnable {
 		return Color.sum(
 				transparencyColor.scale(transparency),
 				baseColor.scale(opacity),
-				reflectionColor
-				);
+				reflectionColor);
 	}
 
 	private Hit getClosestHit(Ray ray) {
@@ -163,11 +164,11 @@ class RayTracingWorker implements Runnable {
 		return grid;
 	}
 
-	private double getExposureLevel(Ray shadowRay, Vector intersection) {
+	private double getExposureLevel(Ray ray, Vector intersection) {
 		double exposure = 1;
-		List<Hit> hits = getOrderedHits(shadowRay);
+		List<Hit> hits = getOrderedHits(ray);
 		for (Hit hit: hits) {
-			if (hit.dist*hit.dist > intersection.distSquared(shadowRay.p0)-RayTracer.EPSILON || exposure == 0)
+			if (exposure == 0 || hit.dist*hit.dist > intersection.distSquared(ray.p0)-RayTracer.EPSILON)
 				break;
 			exposure *= hit.getTransparency();
 		}

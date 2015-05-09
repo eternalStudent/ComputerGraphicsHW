@@ -19,11 +19,14 @@ private ActionListener listener;
 		listener = al;
 		JMenu file = new JMenu("File");
 		JMenu run = new JMenu("Run");
+		JMenu options = new JMenu("Options");
 		add(file);
 		add(run);
 		addMenuItem(file, "Open", KeyEvent.VK_O);
 		addMenuItem(file, "Save", KeyEvent.VK_S);
 		addMenuItem(run, "Render", 0);
+
+		addMenuItem(options, "Settings", 0);
 
 	}
 	

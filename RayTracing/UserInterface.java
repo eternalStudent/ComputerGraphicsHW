@@ -2,7 +2,6 @@ package RayTracing;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.Timer;
@@ -46,6 +45,7 @@ public class UserInterface implements ActionListener{
 			if (chooser.showOpenDialog(view.getContentPane()) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
                 view.setTitle(file.getName());
+				view.setContentPane(new Canvas(null));
                 try {
 					scene = RayTracer.parseScene(file, 500, 500);
 				} catch (IOException | RayTracerException e) {

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,6 +26,7 @@ public class RayTracer {
 	public AtomicInteger curColumn;
 	public int progress = 0;
 	private final BufferedImage image;
+	public ArrayList<Integer> shuffledArray;
 
 	public RayTracer(Scene scene, int width, int height){
 		this.scene = scene;
@@ -32,6 +34,15 @@ public class RayTracer {
 		this.imageHeight = height;
 		this.curColumn = new AtomicInteger();
 		image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+
+
+		shuffledArray = new ArrayList<>();
+
+		for (int i = 0; i < imageWidth; i++) {
+			shuffledArray.add(i);
+		}
+		Collections.shuffle(shuffledArray);
+
 	}
 	
 /**
@@ -61,7 +72,7 @@ public class RayTracer {
 			RayTracer tracer = new RayTracer(scene, imageWidth, imageHeight);
 			tracer.renderScene();
 			
-			View view = new View(tracer.getImage());
+//			View view = new View(tracer.getImage());
 
 			// Save rendered scene as image:
 			String outputFileName = args[1];
@@ -90,7 +101,7 @@ public class RayTracer {
 	
 	public static Scene parseScene(FileReader fr, int imageWidth, int imageHeight) throws IOException, RayTracerException{
 		BufferedReader r = new BufferedReader(fr);
-		String line = null;
+		String line;
 		int lineNum = 0;
 		Scene scene = new Scene();
 		List<Material> materials = new ArrayList<>();

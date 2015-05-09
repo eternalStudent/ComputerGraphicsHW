@@ -14,7 +14,9 @@ public class Canvas extends JPanel {
 	public Canvas(BufferedImage image){
 		super();
 		this.image = image;
-		this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+		if (image != null) {
+			this.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+		}
 	}
 	
 	@Override
