@@ -143,4 +143,9 @@ public class Vector {
 		return rotateAroundX(r.x).rotateAroundY(r.y).rotateAroundZ(r.z);
 	}
 
+	Vector reverseRotate(Vector r){
+		r = r.reverse();
+		return rotateAroundZ(r.z).rotateAroundY(r.y).rotateAroundX(r.x);
+	}
+
 }

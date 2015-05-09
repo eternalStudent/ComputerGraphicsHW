@@ -22,7 +22,7 @@ public class RayTracer {
 	final int imageWidth;
 	final int imageHeight;
 	final Scene scene;
-	public AtomicInteger curPixel;
+	public AtomicInteger curColumn;
 	public int progress = 0;
 	private final BufferedImage image;
 
@@ -30,9 +30,8 @@ public class RayTracer {
 		this.scene = scene;
 		this.imageWidth = width;
 		this.imageHeight = height;
-		this.curPixel = new AtomicInteger();
+		this.curColumn = new AtomicInteger();
 		image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-		renderScene();
 	}
 	
 /**
@@ -60,6 +59,7 @@ public class RayTracer {
 			
 			// Render scene
 			RayTracer tracer = new RayTracer(scene, imageWidth, imageHeight);
+			tracer.renderScene();
 			
 			View view = new View(tracer.getImage());
 

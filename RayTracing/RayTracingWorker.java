@@ -10,30 +10,29 @@ class RayTracingWorker implements Runnable {
     private final RayTracer tracer;
 
     RayTracingWorker(RayTracer tracer) {
-    	this.tracer     = tracer;
+    	this.tracer = tracer;
     }
 
     @Override
     public void run() {
-		int totalImagePixels = tracer.imageWidth * tracer.imageHeight;
+		int imageHeight = tracer.imageHeight;
+		int imageWidth  = tracer.imageWidth;
 
 		while (true) {
-			int pixel = tracer.curPixel.getAndIncrement();
+			int x = tracer.curColumn.getAndIncrement();
 
-			if ( (pixel * 60) / totalImagePixels > tracer.progress) {
-				tracer.progress++;
-				System.out.print('.');
-			}
-
-			if (pixel >= totalImagePixels) {
+			if (x >= imageWidth) {
 				return;
 			}
 
-			int x = pixel / tracer.imageWidth;
-			int y = pixel % tracer.imageWidth;
-
-			Color color = getPixelColor(x, y);
-			tracer.paintPixel(x, y, color);
+			for (int y = 0; y < imageHeight; y++) {
+				Color color = getPixelColor(x, y);
+				tracer.paintPixel(x, y, color);
+			}
+			if ( (x * 60) / imageWidth > tracer.progress ) {
+				tracer.progress++;
+				System.out.print('.');
+			}
 		}
     }
 
