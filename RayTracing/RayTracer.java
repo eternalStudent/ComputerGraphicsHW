@@ -58,7 +58,7 @@ public class RayTracer {
 			// Render scene
 			RayTracer tracer = new RayTracer(scene, imageWidth, imageHeight);
 			
-			View view = new View(tracer.image);
+			View view = new View(tracer.getImage());
 
 			// Save rendered scene as image:
 			String outputFileName = args[1];
@@ -77,6 +77,15 @@ public class RayTracer {
   */
 	public static Scene parseScene(String sceneFileName, int imageWidth, int imageHeight) throws IOException, RayTracerException{
 		FileReader fr = new FileReader(sceneFileName);
+		return parseScene(fr, imageWidth, imageHeight);
+	}
+	
+	public static Scene parseScene(File sceneFile, int imageWidth, int imageHeight) throws IOException, RayTracerException{
+		FileReader fr = new FileReader(sceneFile);
+		return parseScene(fr, imageWidth, imageHeight);
+	}
+	
+	public static Scene parseScene(FileReader fr, int imageWidth, int imageHeight) throws IOException, RayTracerException{
 		BufferedReader r = new BufferedReader(fr);
 		String line = null;
 		int lineNum = 0;
@@ -253,7 +262,7 @@ public class RayTracer {
 	}
 	
 	public void paintPixel(int x, int y, Color pixelColor) {
-		image.setRGB(x, y, pixelColor.getRGB());
+		getImage().setRGB(x, y, pixelColor.getRGB());
 	}
 
 	//////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
@@ -262,15 +271,21 @@ public class RayTracer {
   * Saves RGB data as an image in png format to the specified location.
   */
 	public void saveImage(String fileName){
+		saveImage(new File(fileName));
+	}
+	
+	public void saveImage(File file){
 		try {
-
-			ImageIO.write(image, "png", new File(fileName));
+			ImageIO.write(getImage(), "png", file);
 
 		} catch (IOException e) {
 			System.out.println("ERROR SAVING FILE: " + e.getMessage());
 		}
-
 	}
+
+	public BufferedImage getImage() {
+	return image;
+}
 
 	@SuppressWarnings("serial")
 	public static class RayTracerException extends Exception {

@@ -42,21 +42,24 @@ class RayTracingWorker implements Runnable {
 		else {
 			int multiplier = 2;
 			Random r = new Random();
-			Color[] colors = new Color[multiplier];
+			double red = 0;
+			double green = 0;
+			double blue = 0;
 
 			for (int i = 0; i < multiplier; i++) {
 				double randX = x + r.nextDouble();
 				double randY = y + r.nextDouble();
 				Ray ray = tracer.getCamera().getRayByPixelCoordinate(randX, randY);
-				colors[i] = traceRay(ray, 0);
+				Color color = traceRay(ray, 0);
+				red += color.getR();
+				green += color.getG();
+				blue += color.getB();
 			}
-			Vector result = Vector.ZERO;
+			red /= multiplier;
+			green /= multiplier;
+			blue /= multiplier;
 
-			for (int j = 0; j < multiplier; j++) {
-				result = result.add(colors[j].rgb);
-			}
-
-			return new Color(result.scale(1 /(double) multiplier));
+			return new Color(red, green, blue);
 		}
 	}
 
