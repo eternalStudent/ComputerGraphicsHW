@@ -55,6 +55,10 @@ public class Color {
 		return new Color(a*getR(), a*getG(), a*getB());
 	}
 	
+	int getRGB(){
+		return (int)(rgb.x*255)<<16 | (int)(rgb.y*255)<<8 | (int)(rgb.z*255);
+	}
+	
 	@Override
 	public boolean equals(Object o){
 		if (!(o instanceof Color))

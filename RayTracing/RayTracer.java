@@ -1,8 +1,6 @@
 package RayTracing;
 
-import java.awt.Transparency;
-import java.awt.color.*;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -24,13 +22,13 @@ public class RayTracer {
 	final int imageWidth;
 	final int imageHeight;
 	final Scene scene;
-	private final byte[] imageData;
+	private final BufferedImage image;
 
 	public RayTracer(Scene scene, int width, int height){
 		this.scene = scene;
 		this.imageWidth = width;
 		this.imageHeight = height;
-		imageData = new byte[imageWidth * imageHeight * 3];
+		image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 		renderScene();
 	}
 	
@@ -59,6 +57,8 @@ public class RayTracer {
 			
 			// Render scene
 			RayTracer tracer = new RayTracer(scene, imageWidth, imageHeight);
+			
+			View view = new View(tracer.image);
 
 			// Save rendered scene as image:
 			String outputFileName = args[1];
@@ -253,9 +253,7 @@ public class RayTracer {
 	}
 	
 	public void paintPixel(int x, int y, Color pixelColor) {
-		imageData[(y * imageWidth + x) * 3] = pixelColor.getRByte();
-		imageData[(y * imageWidth + x) * 3 + 1] = pixelColor.getGByte();
-		imageData[(y * imageWidth + x) * 3 + 2] = pixelColor.getBByte();
+		image.setRGB(x, y, pixelColor.getRGB());
 	}
 
 	//////////////////////// FUNCTIONS TO SAVE IMAGES IN PNG FORMAT //////////////////////////////////////////
@@ -266,29 +264,12 @@ public class RayTracer {
 	public void saveImage(String fileName){
 		try {
 
-			BufferedImage image = bytes2RGB(imageWidth, imageData);
 			ImageIO.write(image, "png", new File(fileName));
 
 		} catch (IOException e) {
 			System.out.println("ERROR SAVING FILE: " + e.getMessage());
 		}
 
-	}
-
-/**
-  * Producing a BufferedImage that can be saved as png from a byte array of RGB values.
-  */
-	public static BufferedImage bytes2RGB(int width, byte[] buffer) {
-	    int height = buffer.length / width / 3;
-	    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-	    ColorModel cm = new ComponentColorModel(cs, false, false,
-	            Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-	    SampleModel sm = cm.createCompatibleSampleModel(width, height);
-	    DataBufferByte db = new DataBufferByte(buffer, width * height);
-	    WritableRaster raster = Raster.createWritableRaster(sm, db, null);
-	    BufferedImage result = new BufferedImage(cm, raster, false, null);
-
-	    return result;
 	}
 
 	@SuppressWarnings("serial")
