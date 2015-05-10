@@ -4,41 +4,41 @@ public class Camera {
 	final Vector position;
 
 	private final Vector screenNormal;
-	private final double screenHeight;
+	private double screenWidth;
 
-	private final int imageHeight;
-	private final int imageWidth;
-
-	private final Vector xAxis;
-	private final Vector yAxis;
-
+	private int imageHeight;
+	private int imageWidth;
+	
+	private Vector xAxis;
+	private Vector yAxis;
+	private final Vector up;
 	private final Vector walkingDistance;
 
 	Camera(
 		double px, double py, double pz,
 		double lx, double ly, double lz,
 		double ux, double uy, double uz,
-		double screenDistance, double screenWidth,
-		int imageWidth, int imageHeight) {
+		double screenDistance, double screenWidth) {
 
-		this.screenHeight = (screenWidth*imageHeight) / (double)imageWidth;
-		this.imageHeight = imageHeight;
-		this.imageWidth = imageWidth;
 		this.position = new Vector(px, py, pz);
+		this.screenWidth = screenWidth;
 
-		//constructing screenNormal & screenPlane
+		//constructing up vector && walkingDistance
 		Vector lookAt = new Vector(lx, ly, lz);
 		screenNormal = lookAt.subtract(position).normalize();
+		walkingDistance = screenNormal.toLength(screenDistance);
 		Vector screenCenter = position.add(screenNormal.toLength(screenDistance));
 		Plane screenPlane = screenNormal.getPerpendicularPlaneAtPoint(screenCenter);
-
-		//constructing axes
-		Vector up = new Vector(ux, -uy, uz);
-		up = up.projectOntoPlane(screenPlane);
+		this.up = new Vector(ux, -uy, uz).projectOntoPlane(screenPlane);
+	}
+	
+	public void build(int imageWidth, int imageHeight){
+		this.imageHeight = imageHeight;
+		this.imageWidth = imageWidth;
+		double screenHeight = (screenWidth*this.imageHeight) / (double)this.imageWidth;
+		
 		xAxis = screenNormal.cross(up).toLength(screenWidth / 2);
 		yAxis = up.toLength(screenHeight / 2);
-
-		walkingDistance = screenNormal.toLength(screenDistance);
 	}
 
 	public Ray getRayByPixelCoordinate(double x, double y) {

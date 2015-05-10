@@ -17,6 +17,7 @@ public class UserInterface implements ActionListener{
 	private Scene scene;
 	private RayTracer tracer;
 	private Timer timer = new Timer(100, this);
+	private RenderSettings settings = new RenderSettings(500, 500, 4, false, 4);
 	
 	public UserInterface(){
 		try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } 
@@ -47,7 +48,7 @@ public class UserInterface implements ActionListener{
                 view.setTitle(file.getName());
 				view.setContentPane(new Canvas(null));
                 try {
-					scene = RayTracer.parseScene(file, 500, 500);
+					scene = RayTracer.parseScene(file);
 				} catch (IOException | RayTracerException e) {
 					e.printStackTrace();
 				}
@@ -55,11 +56,9 @@ public class UserInterface implements ActionListener{
 		}
 		
 		if (cmd.equals("Render") && scene != null){
-			tracer = new RayTracer(scene, 500, 500);
+			tracer = new RayTracer(scene, settings);
 			view.setImage(tracer.getImage());
-
 			new Thread(new Renderer()).start();
-
 			timer.start();
 		}
 		
@@ -71,6 +70,26 @@ public class UserInterface implements ActionListener{
 				tracer.saveImage(file);
 			} 
 		}
+		
+		if (cmd.equals("Settings")){
+			RenderSettings temp = Dialogs.showSettingsDialog(view, settings);
+			if (temp != null)
+				settings = temp;
+		}
+		
+		if (cmd.equals("Add Sphere") && scene != null){
+			Primitive primitive = Dialogs.showAddSphereDialog(view, scene.materials);
+			if (primitive != null)
+				scene.primitives.add(primitive);
+		}
+		
+		if (cmd.equals("Add Plane") && scene != null){
+			Primitive primitive = Dialogs.showAddPlaneDialog(view, scene.materials);
+			if (primitive != null)
+				scene.primitives.add(primitive);
+		}
+		
+		
 	}
 
 	class Renderer implements Runnable {

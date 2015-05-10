@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 class RayTracingWorker implements Runnable {
-	private static boolean ANTI_ALIASING = false;
-    private final RayTracer tracer;
+	private final RayTracer tracer;
 
     RayTracingWorker(RayTracer tracer) {
     	this.tracer = tracer;
@@ -15,8 +14,8 @@ class RayTracingWorker implements Runnable {
 
     @Override
     public void run() {
-		int imageHeight = tracer.imageHeight;
-		int imageWidth  = tracer.imageWidth;
+		int imageHeight = tracer.settings.imageHeight;
+		int imageWidth  = tracer.settings.imageWidth;
 
 		while (true) {
 			int x = tracer.curColumn.getAndIncrement();
@@ -39,12 +38,12 @@ class RayTracingWorker implements Runnable {
     }
 
     private Color getPixelColor(int x, int y) {
-		if (!RayTracingWorker.ANTI_ALIASING) {
+		if (!tracer.settings.antiAliasing) {
 			Ray ray = tracer.getCamera().getRayByPixelCoordinate(x, y);
 			return traceRay(ray, 0);
 		}
 		else {
-			int multiplier = 8;
+			int multiplier = tracer.settings.numOfSamples;
 			Random r = new Random();
 			double red = 0;
 			double green = 0;

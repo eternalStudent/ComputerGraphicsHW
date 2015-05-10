@@ -63,7 +63,7 @@ public class Box extends Shape3D {
 		}
 
 		if (isVertex(point)){
-			return point.subtract(position);
+			return point.subtract(position).rotate(rotation);
 		}
 		double EPSILON = RayTracer.EPSILON;
 

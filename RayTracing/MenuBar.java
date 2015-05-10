@@ -20,14 +20,17 @@ private ActionListener listener;
 		JMenu file = new JMenu("File");
 		JMenu run = new JMenu("Run");
 		JMenu options = new JMenu("Options");
+		JMenu scene = new JMenu("Scene");
 		add(file);
 		add(run);
+		add(options);
+		add(scene);
 		addMenuItem(file, "Open", KeyEvent.VK_O);
 		addMenuItem(file, "Save", KeyEvent.VK_S);
 		addMenuItem(run, "Render", 0);
-
 		addMenuItem(options, "Settings", 0);
-
+		addMenuItem(scene, "Add Sphere", 0);
+		addMenuItem(scene, "Add Plane", 0);
 	}
 	
 	private void addMenuItem(JMenu parent, String text, int key){

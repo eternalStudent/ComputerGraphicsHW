@@ -7,11 +7,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.imageio.ImageIO;
 
 /**
@@ -20,29 +20,23 @@ import javax.imageio.ImageIO;
 public class RayTracer {
 
 	public static final double EPSILON = 5e-10;
-	final int imageWidth;
-	final int imageHeight;
 	final Scene scene;
-	public AtomicInteger curColumn;
+	public AtomicInteger curColumn = new AtomicInteger();
 	public int progress = 0;
-	private final BufferedImage image;
-	public ArrayList<Integer> shuffledArray;
+	private BufferedImage image;
+	ArrayList<Integer> shuffledArray;
+	RenderSettings settings;
 
-	public RayTracer(Scene scene, int width, int height){
+	public RayTracer(Scene scene, RenderSettings settings){
 		this.scene = scene;
-		this.imageWidth = width;
-		this.imageHeight = height;
-		this.curColumn = new AtomicInteger();
-		image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-
-
+		this.settings = settings;
+		image = new BufferedImage(settings.imageWidth, settings.imageHeight, BufferedImage.TYPE_INT_RGB);
 		shuffledArray = new ArrayList<>();
-
-		for (int i = 0; i < imageWidth; i++) {
+		for (int i = 0; i < settings.imageWidth; i++) {
 			shuffledArray.add(i);
 		}
 		Collections.shuffle(shuffledArray);
-
+		
 	}
 	
 /**
@@ -65,14 +59,15 @@ public class RayTracer {
 			// Parse scene file:
 			String sceneFileName = args[0];
 			System.out.println("Started parsing scene file " + sceneFileName);
-			Scene scene = parseScene(sceneFileName, imageWidth, imageHeight);
+			Scene scene = parseScene(sceneFileName);
 			System.out.println("Finished parsing scene file " + sceneFileName);
 			
 			// Render scene
-			RayTracer tracer = new RayTracer(scene, imageWidth, imageHeight);
+			RenderSettings settings = new RenderSettings(imageWidth, imageHeight, 4, false, 4); 
+			RayTracer tracer = new RayTracer(scene, settings);
 			tracer.renderScene();
 			
-//			View view = new View(tracer.getImage());
+			new View(tracer.getImage());
 
 			// Save rendered scene as image:
 			String outputFileName = args[1];
@@ -89,22 +84,21 @@ public class RayTracer {
 /**
   * Parses the scene file and creates the scene. Change this function so it generates the required objects.
   */
-	public static Scene parseScene(String sceneFileName, int imageWidth, int imageHeight) throws IOException, RayTracerException{
+	public static Scene parseScene(String sceneFileName) throws IOException, RayTracerException{
 		FileReader fr = new FileReader(sceneFileName);
-		return parseScene(fr, imageWidth, imageHeight);
+		return parseScene(fr);
 	}
 	
-	public static Scene parseScene(File sceneFile, int imageWidth, int imageHeight) throws IOException, RayTracerException{
+	public static Scene parseScene(File sceneFile) throws IOException, RayTracerException{
 		FileReader fr = new FileReader(sceneFile);
-		return parseScene(fr, imageWidth, imageHeight);
+		return parseScene(fr);
 	}
 	
-	public static Scene parseScene(FileReader fr, int imageWidth, int imageHeight) throws IOException, RayTracerException{
+	public static Scene parseScene(FileReader fr) throws IOException, RayTracerException{
 		BufferedReader r = new BufferedReader(fr);
-		String line;
+		String line = null;
 		int lineNum = 0;
 		Scene scene = new Scene();
-		List<Material> materials = new ArrayList<>();
 
 		while ((line = r.readLine()) != null){
 			line = line.trim();
@@ -131,8 +125,7 @@ public class RayTracer {
 						Double.parseDouble(params[7]),
 						Double.parseDouble(params[8]),
 						Double.parseDouble(params[9]),
-						Double.parseDouble(params[10]),
-						imageWidth, imageHeight);
+						Double.parseDouble(params[10]));
 			}
 			
 			//Parse scene settings
@@ -148,7 +141,7 @@ public class RayTracer {
 			
 			//Parse materials
 			else if (code.equals("mtl")){
-				materials.add(new Material(
+				scene.materials.add(new Material(
 						Double.parseDouble(params[0]),
 						Double.parseDouble(params[1]),
 						Double.parseDouble(params[2]),
@@ -170,7 +163,7 @@ public class RayTracer {
 	                	Double.parseDouble(params[1]),
 		                Double.parseDouble(params[2]),
 		                Double.parseDouble(params[3])),
-		                materials.get(Integer.parseInt(params[4]) - 1))
+		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 			}
 			
@@ -181,7 +174,7 @@ public class RayTracer {
 	                	Double.parseDouble(params[1]),
 		                Double.parseDouble(params[2]),
 		                Double.parseDouble(params[3])),
-		                materials.get(Integer.parseInt(params[4]) - 1))
+		                scene.materials.get(Integer.parseInt(params[4]) - 1))
 	                );
 			}
 			
@@ -197,7 +190,7 @@ public class RayTracer {
 		                Double.parseDouble(params[6]),
 		                Double.parseDouble(params[7]),
 		                Double.parseDouble(params[8])),
-		                materials.get(0))
+		                scene.materials.get(0))
 		            );
 			}
 			
@@ -234,14 +227,16 @@ public class RayTracer {
 
 	public void renderScene() {
 		long startTime = System.currentTimeMillis();
-
-		int numOfThreads = 4;
-		RayTracingWorker[] workers = new RayTracingWorker[numOfThreads];
+		int imageWidth = settings.imageWidth;
+		int imageHeight = settings.imageHeight;
+		scene.camera.build(imageWidth, imageHeight);
+		
+		RayTracingWorker[] workers = new RayTracingWorker[settings.numOfThreads];
 
 		ExecutorService es = Executors.newCachedThreadPool();
 
 		System.out.print("Rendering");
-		for (int i = 0; i < numOfThreads; i++) {
+		for (int i = 0; i < settings.numOfThreads; i++) {
 			workers[i] = new RayTracingWorker(this);
 			es.execute(workers[i]);
 		}
@@ -250,7 +245,6 @@ public class RayTracer {
 		try {
 			es.awaitTermination(10, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
