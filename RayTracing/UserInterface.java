@@ -17,7 +17,7 @@ public class UserInterface implements ActionListener{
 	private Scene scene;
 	private RayTracer tracer;
 	private Timer timer = new Timer(100, this);
-	private RenderSettings settings = new RenderSettings(500, 500, 4, false, 4);
+	private RenderSettings settings = new RenderSettings(500, 500, 10, 4, false, 4);
 	
 	public UserInterface(){
 		try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } 
@@ -49,6 +49,7 @@ public class UserInterface implements ActionListener{
 				view.setContentPane(new Canvas(null));
                 try {
 					scene = RayTracer.parseScene(file);
+					settings.maxRecursionLevel = scene.settings.maxRecursionLevel;
 				} catch (IOException | RayTracerException e) {
 					e.printStackTrace();
 				}
@@ -89,6 +90,17 @@ public class UserInterface implements ActionListener{
 				scene.primitives.add(primitive);
 		}
 		
+		if (cmd.equals("Set Camera") && scene != null){
+			Camera camera = Dialogs.showSetCameraDialog(view, scene.camera);
+			if (camera != null)
+				scene.camera = camera;
+		}
+		
+		if (cmd.equals("Set Background Color") && scene != null){
+			Color color = Dialogs.showBackgroundColorDialog(view, scene.settings.background);
+			if (color != null)
+				scene.settings.background = color;
+		}
 		
 	}
 

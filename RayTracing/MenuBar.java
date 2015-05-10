@@ -31,6 +31,8 @@ private ActionListener listener;
 		addMenuItem(options, "Settings", 0);
 		addMenuItem(scene, "Add Sphere", 0);
 		addMenuItem(scene, "Add Plane", 0);
+		addMenuItem(scene, "Set Camera", 0);
+		addMenuItem(scene, "Set Background Color", 0);
 	}
 	
 	private void addMenuItem(JMenu parent, String text, int key){

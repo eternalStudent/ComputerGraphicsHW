@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -23,6 +24,11 @@ public class Dialogs {
 		JTextField height = new JTextField(Integer.toString(defaultSettings.imageHeight));
 		attributes.add(height);
 		panel.add(attributes);
+		JPanel recursionPanel = new JPanel();
+		recursionPanel.add(new JLabel("max recursion level"));
+		JTextField recursion = new JTextField(Integer.toString(defaultSettings.maxRecursionLevel));
+		recursionPanel.add(recursion);
+		panel.add(recursionPanel);
 		JPanel threadsPanel = new JPanel();
 		threadsPanel.add(new JLabel("number of threads"));
 		JTextField threads = new JTextField(Integer.toString(defaultSettings.numOfThreads));
@@ -40,7 +46,8 @@ public class Dialogs {
 			try{
 				return new RenderSettings(
 					Integer.parseInt(width.getText()), 
-					Integer.parseInt(height.getText()), 
+					Integer.parseInt(height.getText()),
+					Integer.parseInt(recursion.getText()),
 					Integer.parseInt(threads.getText()), 
 					antiAliasing.isContentAreaFilled(),
 					Integer.parseInt(samples.getText()));
@@ -71,10 +78,10 @@ public class Dialogs {
 		if (option == JOptionPane.OK_OPTION){
 			try{
 				return new Primitive(new Sphere(
-					Integer.parseInt( px.getText() ), 
-					Integer.parseInt( py.getText() ), 
-					Integer.parseInt( pz.getText() ), 
-					Integer.parseInt( radius.getText() )  ),
+					Double.parseDouble( px.getText() ), 
+					Double.parseDouble( py.getText() ), 
+					Double.parseDouble( pz.getText() ), 
+					Double.parseDouble( radius.getText() )  ),
 					materials.get(  Integer.parseInt( material.getText() )-1  ));
 				}
 			catch(Exception e){}
@@ -103,15 +110,81 @@ public class Dialogs {
 		if (option == JOptionPane.OK_OPTION){
 			try{
 				return new Primitive(new Plane(
-					Integer.parseInt( nx.getText() ), 
-					Integer.parseInt( ny.getText() ), 
-					Integer.parseInt( nz.getText() ), 
-					Integer.parseInt( offset.getText() )  ),
+					Double.parseDouble( nx.getText() ), 
+					Double.parseDouble( ny.getText() ), 
+					Double.parseDouble( nz.getText() ), 
+					Double.parseDouble( offset.getText() )  ),
 					materials.get(  Integer.parseInt( material.getText() )-1  ));
 				}
 			catch(Exception e){}
 		}
 		return null;
+	}
+	
+	public static Camera showSetCameraDialog(Component parent, Camera defaultCamera){
+		JPanel panel = new JPanel();
+		panel.add(new JLabel("px"));
+		JTextField px = new JTextField(Double.toString(defaultCamera.position.x));
+		panel.add(px);
+		panel.add(new JLabel("py"));
+		JTextField py = new JTextField(Double.toString(defaultCamera.position.y));
+		panel.add(py);
+		panel.add(new JLabel("pz"));
+		JTextField pz = new JTextField(Double.toString(defaultCamera.position.z));
+		panel.add(pz);
+		panel.add(new JLabel("lx"));
+		JTextField lx = new JTextField(3);
+		panel.add(lx);
+		panel.add(new JLabel("ly"));
+		JTextField ly = new JTextField(3);
+		panel.add(ly);
+		panel.add(new JLabel("lz"));
+		JTextField lz = new JTextField(3);
+		panel.add(lz);
+		panel.add(new JLabel("ux"));
+		JTextField ux = new JTextField(3);
+		panel.add(ux);
+		panel.add(new JLabel("uy"));
+		JTextField uy = new JTextField(3);
+		panel.add(uy);
+		panel.add(new JLabel("uz"));
+		JTextField uz = new JTextField(3);
+		panel.add(uz);
+		panel.add(new JLabel("screen distance"));
+		JTextField distance = new JTextField(3);
+		panel.add(distance);
+		panel.add(new JLabel("screen width"));
+		JTextField width = new JTextField(3);
+		panel.add(width);
+		
+		int option = JOptionPane.showConfirmDialog(parent, panel, "Set Camera", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		if (option == JOptionPane.OK_OPTION){
+			try{
+				return new Camera(
+					Double.parseDouble( px.getText() ), 
+					Double.parseDouble( py.getText() ), 
+					Double.parseDouble( pz.getText() ),
+					Double.parseDouble( lx.getText() ), 
+					Double.parseDouble( ly.getText() ), 
+					Double.parseDouble( lz.getText() ),
+					Double.parseDouble( ux.getText() ), 
+					Double.parseDouble( uy.getText() ), 
+					Double.parseDouble( uz.getText() ),
+					Double.parseDouble( distance.getText() ),
+					Double.parseDouble( width.getText() ));
+				}
+			catch(Exception e){}
+		}
+		return null;
+	}
+	
+	public static Color showBackgroundColorDialog(Component parent, Color color){
+		java.awt.Color awtColor = new java.awt.Color(color.getRGB());
+		awtColor = JColorChooser.showDialog(parent, "Set Background Color", awtColor);
+		if (awtColor != null){
+			color = new Color(awtColor.getRed()/255.0, awtColor.getGreen()/255.0, awtColor.getBlue()/255.0);
+		}
+		return color;
 	}
 
 }

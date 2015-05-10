@@ -63,7 +63,7 @@ public class RayTracer {
 			System.out.println("Finished parsing scene file " + sceneFileName);
 			
 			// Render scene
-			RenderSettings settings = new RenderSettings(imageWidth, imageHeight, 4, false, 4); 
+			RenderSettings settings = new RenderSettings(imageWidth, imageHeight, scene.settings.maxRecursionLevel, 4, false, 4); 
 			RayTracer tracer = new RayTracer(scene, settings);
 			tracer.renderScene();
 			

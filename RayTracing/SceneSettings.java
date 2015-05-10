@@ -1,15 +1,15 @@
 package RayTracing;
 
 public class SceneSettings {
-	final Color background;
+	Color background;
 	final int shadowRaysNum;
 	final int maxRecursionLevel;
 
 	SceneSettings(
-		double d, double e, double f,
+		double red, double green, double blue,
 		int shadowRaysNum, int maxRecursionLevel) {
 
-		background = new Color(d, e, f);
+		background = new Color(red, green, blue);
 		this.shadowRaysNum = shadowRaysNum;
 		this.maxRecursionLevel = maxRecursionLevel;
 	}

@@ -69,7 +69,7 @@ class RayTracingWorker implements Runnable {
 	private Color traceRay(Ray ray, int iteration) {
 		Hit closestHit = getClosestHit(ray.moveOriginAlongRay(RayTracer.EPSILON));
 
-		if (closestHit == null || iteration == tracer.getSettings().maxRecursionLevel) {
+		if (closestHit == null || iteration == tracer.settings.maxRecursionLevel) {
 			return tracer.getSettings().background;
 		}
 
