@@ -49,7 +49,7 @@ public class Dialogs {
 					Integer.parseInt(height.getText()),
 					Integer.parseInt(recursion.getText()),
 					Integer.parseInt(threads.getText()), 
-					antiAliasing.isContentAreaFilled(),
+					antiAliasing.isSelected(),
 					Integer.parseInt(samples.getText()));
 				}
 			catch(Exception e){}

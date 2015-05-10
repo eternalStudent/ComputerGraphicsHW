@@ -20,7 +20,7 @@ class RayTracingWorker implements Runnable {
 		while (true) {
 			int x = tracer.curColumn.getAndIncrement();
 
-			if (x >= imageWidth) {
+			if (x >= imageWidth || tracer.halt) {
 				return;
 			}
 

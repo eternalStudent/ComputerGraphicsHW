@@ -26,6 +26,7 @@ public class RayTracer {
 	private BufferedImage image;
 	ArrayList<Integer> shuffledArray;
 	RenderSettings settings;
+	public boolean halt;
 
 	public RayTracer(Scene scene, RenderSettings settings){
 		this.scene = scene;
@@ -67,7 +68,7 @@ public class RayTracer {
 			RayTracer tracer = new RayTracer(scene, settings);
 			tracer.renderScene();
 			
-			new View(tracer.getImage());
+//			new View(tracer.getImage());
 
 			// Save rendered scene as image:
 			String outputFileName = args[1];

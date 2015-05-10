@@ -28,6 +28,7 @@ private ActionListener listener;
 		addMenuItem(file, "Open", KeyEvent.VK_O);
 		addMenuItem(file, "Save", KeyEvent.VK_S);
 		addMenuItem(run, "Render", 0);
+		addMenuItem(run, "Stop", 0);
 		addMenuItem(options, "Settings", 0);
 		addMenuItem(scene, "Add Sphere", 0);
 		addMenuItem(scene, "Add Plane", 0);

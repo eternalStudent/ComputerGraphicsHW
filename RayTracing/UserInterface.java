@@ -16,9 +16,10 @@ public class UserInterface implements ActionListener{
 	private View view = new View();
 	private Scene scene;
 	private RayTracer tracer;
-	private Timer timer = new Timer(100, this);
+	private Timer timer = new Timer(300, this);
 	private RenderSettings settings = new RenderSettings(500, 500, 10, 4, false, 4);
-	
+	private Thread drawingThread;
+
 	public UserInterface(){
 		try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } 
 		catch (Exception e) { e.printStackTrace(); }
@@ -47,6 +48,7 @@ public class UserInterface implements ActionListener{
                 File file = chooser.getSelectedFile();
                 view.setTitle(file.getName());
 				view.setContentPane(new Canvas(null));
+				cmd = "Stop";
                 try {
 					scene = RayTracer.parseScene(file);
 					settings.maxRecursionLevel = scene.settings.maxRecursionLevel;
@@ -55,14 +57,27 @@ public class UserInterface implements ActionListener{
 				}
 			}    
 		}
-		
+
 		if (cmd.equals("Render") && scene != null){
 			tracer = new RayTracer(scene, settings);
+
+			tracer.halt = false;
+
 			view.setImage(tracer.getImage());
-			new Thread(new Renderer()).start();
+
+			drawingThread = new Thread(new Renderer());
+			drawingThread.start();
+
 			timer.start();
 		}
-		
+
+		if (cmd.equals("Stop") && scene != null) {
+			if (drawingThread != null) {
+				tracer.halt = true;
+				drawingThread = null;
+			}
+		}
+
 		if (cmd.equals("Save") && tracer != null){
 			chooser.setDialogTitle("Save rendered Scene as image");
 			if (chooser.showSaveDialog(view.getContentPane()) == JFileChooser.APPROVE_OPTION) {
