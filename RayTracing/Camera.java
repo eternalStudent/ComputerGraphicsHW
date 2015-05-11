@@ -2,19 +2,19 @@ package RayTracing;
 
 public class Camera {
 	final Vector position;
-
-	private final Vector screenNormal;
-	private double screenWidth;
-
+	final Vector screenNormal;
+	final Vector up;
+	
+	final double screenWidth;
+	
 	private int imageHeight;
 	private int imageWidth;
-	
 	private Vector xAxis;
 	private Vector yAxis;
-	private final Vector up;
+	
 	private final Vector walkingDistance;
 
-	Camera(
+	public Camera(
 		double px, double py, double pz,
 		double lx, double ly, double lz,
 		double ux, double uy, double uz,
