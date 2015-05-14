@@ -67,21 +67,18 @@ public class Box extends Shape3D {
 		}
 		double EPSILON = RayTracer.EPSILON;
 
-		if (point.y+EPSILON >= y0 && point.y-EPSILON <= y1 && point.z+EPSILON >= z0 && point.z-EPSILON <= z1){
-			if (Math.abs(point.x-x0)<EPSILON)
-				return new Vector(-1, 0, 0).rotate(rotation);
+		if (Math.abs(point.x-x0)<EPSILON)
+			return new Vector(-1, 0, 0).rotate(rotation);
+		if (Math.abs(point.x-x1)<EPSILON)
 			return new Vector(1, 0, 0).rotate(rotation);
-		}
-		if (point.x+EPSILON >= x0 && point.x-EPSILON <= x1 && point.z+EPSILON >= z0 && point.z-EPSILON <= z1){
-			if (Math.abs(point.y-y0)<EPSILON)
-				return new Vector(0, -1, 0).rotate(rotation);
+		if (Math.abs(point.y-y0)<EPSILON)
+			return new Vector(0, -1, 0).rotate(rotation);
+		if (Math.abs(point.y-y1)<EPSILON)
 			return new Vector(0, 1, 0).rotate(rotation);
-		}
-		if (point.x+EPSILON >= x0 && point.x-EPSILON <= x1 && point.y+EPSILON >= y0 && point.y-EPSILON <= y1){
-			if (Math.abs(point.z-z0)<EPSILON)
-				return new Vector(0, 0, -1).rotate(rotation);
+		if (Math.abs(point.z-z0)<EPSILON)
+			return new Vector(0, 0, -1).rotate(rotation);
+		if (Math.abs(point.z-z1)<EPSILON)
 			return new Vector(0, 0, 1).rotate(rotation);
-		}
 		System.out.println("Herp!");
 		return Vector.ZERO;
 	}

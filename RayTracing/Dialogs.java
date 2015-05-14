@@ -133,14 +133,14 @@ public class Dialogs {
 		JTextField pz = new JTextField(Double.toString(defaultCamera.position.z));
 		panel.add(pz);
 		panel.add(new JLabel("nx"));
-		JTextField lx = new JTextField(Double.toString(defaultCamera.screenNormal.x));
-		panel.add(lx);
+		JTextField nx = new JTextField(Double.toString(defaultCamera.screenNormal.x));
+		panel.add(nx);
 		panel.add(new JLabel("ny"));
-		JTextField ly = new JTextField(Double.toString(defaultCamera.screenNormal.y));
-		panel.add(ly);
+		JTextField ny = new JTextField(Double.toString(defaultCamera.screenNormal.y));
+		panel.add(ny);
 		panel.add(new JLabel("nz"));
-		JTextField lz = new JTextField(Double.toString(defaultCamera.screenNormal.z));
-		panel.add(lz);
+		JTextField nz = new JTextField(Double.toString(defaultCamera.screenNormal.z));
+		panel.add(nz);
 		panel.add(new JLabel("ux"));
 		JTextField ux = new JTextField(Double.toString(defaultCamera.up.x));
 		panel.add(ux);
@@ -164,9 +164,9 @@ public class Dialogs {
 					Double.parseDouble( px.getText() ), 
 					Double.parseDouble( py.getText() ), 
 					Double.parseDouble( pz.getText() ),
-					Double.parseDouble( lx.getText() ), 
-					Double.parseDouble( ly.getText() ), 
-					Double.parseDouble( lz.getText() ),
+					Double.parseDouble( nx.getText() ), 
+					Double.parseDouble( ny.getText() ), 
+					Double.parseDouble( nz.getText() ),
 					Double.parseDouble( ux.getText() ), 
 					Double.parseDouble( uy.getText() ), 
 					Double.parseDouble( uz.getText() ),
