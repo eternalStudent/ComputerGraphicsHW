@@ -23,7 +23,9 @@ public class Box extends Shape3D {
 	@Override
 	double getHitDistance(Ray ray) {
 		if (!rotation.equals(Vector.ZERO)) {
-			ray = new Ray(ray.p0.reverseRotate(rotation), ray.dir.reverseRotate(rotation));
+			Vector p0 = ray.p0.reverseRotation(rotation, position);
+			Vector dir = ray.dir.reverseRotation(rotation);
+			ray = new Ray(p0, dir);
 		}
 
 		double inv1 = (1 / ray.dir.x);
@@ -59,14 +61,10 @@ public class Box extends Shape3D {
 	@Override
 	Vector getNormalAtSurfacePoint(Vector point) {
 		if (!rotation.equals(Vector.ZERO)) {
-			point = point.reverseRotate(rotation);
+			point = point.reverseRotation(rotation, position);
 		}
 
-		if (isVertex(point)){
-			return point.subtract(position).rotate(rotation);
-		}
 		double EPSILON = RayTracer.EPSILON;
-
 		if (Math.abs(point.x-x0)<EPSILON)
 			return new Vector(-1, 0, 0).rotate(rotation);
 		if (Math.abs(point.x-x1)<EPSILON)
@@ -81,12 +79,6 @@ public class Box extends Shape3D {
 			return new Vector(0, 0, 1).rotate(rotation);
 		System.out.println("Herp!");
 		return Vector.ZERO;
-	}
-
-	boolean isVertex(Vector point){
-		return (Math.abs(point.x-x0)<RayTracer.EPSILON || Math.abs(point.x-x1)<RayTracer.EPSILON)
-			&& (Math.abs(point.y-y0)<RayTracer.EPSILON || Math.abs(point.y-y1)<RayTracer.EPSILON)
-			&& (Math.abs(point.z-z0)<RayTracer.EPSILON || Math.abs(point.z-z1)<RayTracer.EPSILON);
 	}
 
 }

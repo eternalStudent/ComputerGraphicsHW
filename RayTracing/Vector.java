@@ -138,12 +138,17 @@ public class Vector {
 		double sint = Math.sin(t);
 		return new Vector(cost*x-sint*y, sint*x+cost*y, z);
 	}
-
+	
 	Vector rotate(Vector r){
 		return rotateAroundX(r.x).rotateAroundY(r.y).rotateAroundZ(r.z);
 	}
+	
+	Vector reverseRotation(Vector r, Vector center){
+		r = r.reverse();
+		return subtract(center).rotateAroundZ(r.z).rotateAroundY(r.y).rotateAroundX(r.x).add(center);
+	}
 
-	Vector reverseRotate(Vector r){
+	Vector reverseRotation(Vector r){
 		r = r.reverse();
 		return rotateAroundZ(r.z).rotateAroundY(r.y).rotateAroundX(r.x);
 	}
